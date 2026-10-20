@@ -10,7 +10,18 @@ from utils.data_aug import math_round
 from utils.data_aug import contaminate
 from utils.data_aug import add_timestamp
 
-def osESD_Detector_auto(database, data_label, weights, par_len, parameters, min_max_switch, seed=None):
+def osESD_Detector_auto(
+    database,
+    data_label,
+    weights,
+    par_len,
+    parameters,
+    min_max_switch,
+    seed=None,
+    legacy_cap=False,
+    use_author_lambda=False,
+    rep_at="loo",
+):
 
     if (sum(weights)<=0):
         raise Exception("Weight value must be above 0.")
@@ -119,18 +130,20 @@ def osESD_Detector_auto(database, data_label, weights, par_len, parameters, min_
                             if (param_idx)%(Total_length//4)==0:
                                 print("Process : [ {} / {} ]".format(param_idx,Total_length))
 
-                            # Valid window size guard:
-                            # 1) Must not exceed training length par_len
-                            # 2) Must be larger than dwin and rwin
-                            w_eff = min(win_size, par_len)
-                            if w_eff <= max(dwin, rwin):
-                                continue
+                            if legacy_cap:
+                                w_eff = min(win_size, int(par_len * 0.1))
+                            else:
+                                w_eff = min(win_size, par_len)
+                                if w_eff <= max(dwin, rwin):
+                                    continue
 
                             new_pars = [andor,w_eff,maxr,dwin,rwin,alpha]
                             t1 = t.time()
                             anomal_preds = run_osESD_modified(data=data,time=time,
                                                      full_size=par_len,init_size=w_eff,
-                                                     params=new_pars)
+                                                     params=new_pars,
+                                                     use_author_lambda=use_author_lambda,
+                                                     rep_at=rep_at)
                             t2 = t.time()
                             # scores = Precision_Recall_f1score(par_anoms, anomal_preds)
                             scores = scores_module.Precision_Recall_f1score(par_anoms, anomal_preds)
@@ -200,13 +213,15 @@ def osESD_Detector_auto(database, data_label, weights, par_len, parameters, min_
         # Fallback to default if no valid combinations found
         new_params = [[1, 50, 5, 5, 5, 0.01]]
 
-    Final_Score = -1
+    Final_Score = -float("inf")
     Final_Param = new_params[0]
     # second_step_idx=0
     for param in new_params:
         t1 = t.time()
         anomal_preds = run_osESD_modified(data=data,time=time,full_size=par_len,
-                                 init_size=param[1],params=param)
+                                 init_size=param[1],params=param,
+                                 use_author_lambda=use_author_lambda,
+                                 rep_at=rep_at)
         t2 = t.time()
         scores = scores_module.Precision_Recall_f1score(par_anoms,anomal_preds)
         # scores = Precision_Recall_f1score(par_anoms, anomal_preds)
@@ -222,7 +237,9 @@ def osESD_Detector_auto(database, data_label, weights, par_len, parameters, min_
     t1 = t.time()
     full_dataset_len = len(database)
     final_anomaly_index= run_osESD_modified(data=list(database['value'].astype(float)), time=time, full_size=full_dataset_len,
-                                    init_size=Final_Param[1], params=Final_Param)
+                                    init_size=Final_Param[1], params=Final_Param,
+                                    use_author_lambda=use_author_lambda,
+                                    rep_at=rep_at)
     t2 = t.time()
     final_anomaly_preds = []
     # print(Final_Param)
@@ -231,7 +248,7 @@ def osESD_Detector_auto(database, data_label, weights, par_len, parameters, min_
             final_anomaly_preds.append(i)
     return final_anomaly_index, final_anomaly_preds, Final_Param
 
-def run_osESD_modified(data, time, full_size, init_size, params):
+def run_osESD_modified(data, time, full_size, init_size, params, use_author_lambda=False, rep_at="loo"):
     rwins=params[4]
     train_data = data[:init_size]
     online_data = data[init_size:full_size]
@@ -239,8 +256,8 @@ def run_osESD_modified(data, time, full_size, init_size, params):
     online_time = time[init_size:full_size]
     c_ins = osESD_Transform.TCHA(data=train_data, time=train_time, wins=params[3])
     r_ins = osESD_Transform.TRES(data=train_data, time=train_time, wins=rwins)
-    SESD_TCHA = osESD_Test.SESD(data=c_ins.vec.copy(), alpha=params[5], maxr=params[2])
-    SESD_TRES = osESD_Test.SESD(data=r_ins.vec.copy(), alpha=params[5], maxr=params[2])
+    SESD_TCHA = osESD_Test.SESD(data=c_ins.vec.copy(), alpha=params[5], maxr=params[2], use_author_lambda=use_author_lambda)
+    SESD_TRES = osESD_Test.SESD(data=r_ins.vec.copy(), alpha=params[5], maxr=params[2], use_author_lambda=use_author_lambda)
     anomaly_index = []
     for i in range(len(online_data)):
         ranom = SESD_TRES.test(r_ins.update(online_data[i], online_time[i]))
@@ -251,7 +268,7 @@ def run_osESD_modified(data, time, full_size, init_size, params):
             function_ = canom and ranom
         if function_:
             anomaly_index.append(i + init_size)
-            rep = r_ins.loo_prediction()
+            rep = r_ins.loo_prediction(at="prev" if rep_at in ("prev", "author") else "now")
             c_ins.replace(rep)
             r_ins.replace(rep)
     pred_outlier = [0 for _ in range(full_size)]

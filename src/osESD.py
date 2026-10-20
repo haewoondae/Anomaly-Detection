@@ -56,7 +56,8 @@ def osESD(df, labeled=True, value_name='value',
 
 def auto_osESD(dataset, labeled=True, value_name='value', timestamp_name='timestamps', anomaly_name='anomaly', 
          sizes=[], conditions=[], dwins=[], rwins=[], maxrs=[], alphas=[], 
-         weights=[0,0,1,0], learning_length=0.2, min_max_switch=False, seed=None):
+         weights=[0,0,1,0], learning_length=0.2, min_max_switch=False, seed=None,
+         legacy_cap=False, use_author_lambda=False, rep_at='loo'):
     
     if value_name not in dataset.columns:
         raise ValueError("Value column can not be found. Please specify column name with time series values as 'value_name'.")
@@ -129,11 +130,16 @@ def auto_osESD(dataset, labeled=True, value_name='value', timestamp_name='timest
                                                              weights=weights,
                                                              par_len=learning_length,
                                                              parameters=parameters, min_max_switch=min_max_switch,
-                                                             seed=seed)
+                                                             seed=seed,
+                                                             legacy_cap=legacy_cap,
+                                                             use_author_lambda=use_author_lambda,
+                                                             rep_at=rep_at)
     tuning_params = tuning_results[2]
     predictions = auto_osESD_Detector.run_osESD_modified(data=list(df['value'].astype(float)), time=list(df['timestamps']),
                                                         full_size=len(df), init_size=tuning_params[1],
-                                                        params=tuning_params)
+                                                        params=tuning_params,
+                                                        use_author_lambda=use_author_lambda,
+                                                        rep_at=rep_at)
     T2 = t.time()
 
     pred_index = np.where(np.array(predictions)==1)

@@ -7,9 +7,12 @@ if mode != "pypi":
 from osESD import osESD
 
 CFGS = {
-    "A": dict(size=100, dwin=5, rwin=5, maxr=10, alpha=0.01, condition=True),
-    "B": dict(size=50, dwin=2, rwin=4, maxr=3, alpha=0.05, condition=False),
-    "C": dict(size=150, dwin=10, rwin=10, maxr=7, alpha=0.001, condition=True),
+    "A": dict(size=100, dwin=5,  rwin=5,  maxr=10, alpha=0.01,  condition=True),
+    "B": dict(size=50,  dwin=2,  rwin=4,  maxr=3,  alpha=0.05,  condition=False),
+    "C": dict(size=150, dwin=10, rwin=10, maxr=7,  alpha=0.001, condition=True),
+    "D": dict(size=50,  dwin=2,  rwin=10, maxr=3,  alpha=0.05,  condition=False),   # OR, 큰 rwin
+    "E": dict(size=50,  dwin=2,  rwin=4,  maxr=3,  alpha=0.05,  condition=True),    # AND, 작은 rwin
+    "F": dict(size=50,  dwin=2,  rwin=10, maxr=3,  alpha=0.05,  condition=True),    # AND, 큰 rwin
 }
 EXTRA = {
     "author":   dict(use_author_lambda=True,  rep_at="author"),
