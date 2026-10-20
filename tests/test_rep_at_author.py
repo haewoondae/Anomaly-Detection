@@ -20,4 +20,4 @@ def test_prev_matches_author_formula():
         for j in range(100, 130):
             r.update(x[j], t[j])
         assert abs(r.loo_prediction(at="prev") - author_rep(r.time, r.data)) < 1e-9
-        assert abs(r.loo_prediction(at="now") - author_rep(r.time, r.data)) > 1e-12 or True
+        assert abs(r.loo_prediction(at="now") - author_rep(r.time, r.data)) > 1e-9
