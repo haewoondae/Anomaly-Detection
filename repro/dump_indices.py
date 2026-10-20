@@ -11,7 +11,13 @@ CFGS = {
     "B": dict(size=50, dwin=2, rwin=4, maxr=3, alpha=0.05, condition=False),
     "C": dict(size=150, dwin=10, rwin=10, maxr=7, alpha=0.001, condition=True),
 }
-EXTRA = {"author": dict(use_author_lambda=True, rep_at="author"), "patched": {}, "pypi": {}}[mode]
+EXTRA = {
+    "author":   dict(use_author_lambda=True,  rep_at="author"),
+    "patched":  {},
+    "lam_only": dict(use_author_lambda=False, rep_at="author"),   # Rosner λ + 저자식 치환
+    "rep_only": dict(use_author_lambda=True,  rep_at="loo"),      # 저자 λ + LOO(현재 시점) 치환
+    "pypi":     {},
+}[mode]
 res = {}
 for f in sorted(glob.glob(os.path.join(data_dir, "*.csv"))):
     df = pd.read_csv(f)
