@@ -48,3 +48,6 @@ Thumbs.db
 # Project temporary docs / plans
 github_push_plan.md
 github_push_progress.md
+
+gen_out/
+
