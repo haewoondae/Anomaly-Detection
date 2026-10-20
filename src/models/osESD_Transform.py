@@ -187,14 +187,9 @@ class TRES:
             t = self._t[-1] + self.t0 + 1
         return self._slide(x, float(t) - self.t0)
 
-    def loo_prediction(self):
-        """Regression prediction at the newest time, fitted WITHOUT the newest point.
-
-        Used as the replacement value when the newest point is an anomaly:
-        the predicted 'clean' value given only the n-1 preceding observations.
-        """
-        tl = self._t[-1]
-        xl = self._x[-1]
+    def loo_prediction(self, at="now"):
+        """at='now': predict at newest time; at='prev': predict at previous time (author style)."""
+        tl, xl = self._t[-1], self._x[-1]
         a, b = self._fit(
             self.n - 1,
             self.St - tl,
@@ -202,7 +197,8 @@ class TRES:
             self.Stt - tl * tl,
             self.Stx - tl * xl,
         )
-        return a + b * tl
+        t_eval = tl if at == "now" else self._t[-2]
+        return a + b * t_eval
 
     def replace(self, rep):
         """Replace the most-recently appended value with `rep` and sync sums."""

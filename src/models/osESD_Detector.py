@@ -52,8 +52,7 @@ def osESD(
         Strategy for computing the replacement value when an anomaly occurs:
         - 'loo': regression prediction at anomalous timestamp using the leave-one-out
                  fit of preceding n-1 points (default, proper online imputation).
-        - 'prev' or 'author': regression prediction fitted on [t_{i-1}, t_i] but evaluated
-                 at the previous timestamp t_{i-1} (replicates original author codebase).
+        - 'prev' or 'author': 이상치를 제외한 n-1개로 적합해 직전 시점에서 예측 (replicates original author codebase).
 
     Returns
     -------
@@ -85,17 +84,7 @@ def osESD(
         if is_anomaly:
             anomalies.append(i + train_size)
 
-            # Replacement value computation
-            if rep_at in ("prev", "author"):
-                # Original author style: alpha_hat + beta_hat * t_{i-1}
-                tl = r._t[-1]
-                t_prev = r._t[-2] if len(r._t) >= 2 else tl - 1.0
-                a, b = r._fit(r.n, r.St, r.Sx, r.Stt, r.Stx)
-                rep = a + b * t_prev
-            else:
-                # Leave-one-out prediction at current anomalous timestamp
-                rep = r.loo_prediction()
-
+            rep = r.loo_prediction(at="prev" if rep_at in ("prev", "author") else "now")
             c.replace(rep)
             r.replace(rep)
 
