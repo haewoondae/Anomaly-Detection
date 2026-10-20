@@ -1,36 +1,93 @@
+"""osESD online detector.
 
-from . import osESD_Test
-from . import osESD_Transform
+Performs offline initialisation on the first `train_size` points, then
+processes remaining observations one at a time via the update loop.
+"""
 
-def osESD(data, dwins, rwins, train_size, alpha, maxr, condition, time=None):
-    offline_data = data[:train_size]
-    online_data = data[train_size:len(data)]
-    offline_time = time[:train_size]
-    online_time = time[train_size:len(data)]
-    c_ins = osESD_Transform.TCHA(data = offline_data, time = offline_time, wins = dwins)
-    r_ins = osESD_Transform.TRES(data = offline_data, time = offline_time, wins = rwins)
-    SESD_TCHA = osESD_Test.SESD_tcha(data = c_ins.tcha.copy(), alpha = alpha, maxr = maxr)
-    SESD_TRES = osESD_Test.SESD_tres(data = r_ins.tres.copy(), alpha = alpha, maxr = maxr)
-    anomaly_index = []
-    for i in range(len(online_data)):
-        canom = SESD_TCHA.test(c_ins.update(online_data[i], online_time[i]))
-        ranom = SESD_TRES.test(r_ins.update(online_data[i], online_time[i]))
-        if condition: function_ = (canom and ranom)
-        else: function_ = (canom or ranom)
-        if function_ :
-            anomaly_index.append(i+train_size)
-            D = r_ins.data.copy()
-            T = r_ins.time.copy()
-            del D[rwins-1]
-            del T[rwins-1]
-            x_bar = ((rwins*r_ins.x_bar) - r_ins.time[rwins-1]) / (rwins-1)
-            y_bar = ((rwins*r_ins.y_bar) - r_ins.data[rwins-1]) / (rwins-1)
-            beta_ = sum((T-x_bar)*(D-y_bar))/sum((T-x_bar)**2)
-            alpha_ = y_bar - beta_*x_bar
-            rep = alpha_ + beta_*T[rwins-2]
-            c_ins.replace(rep)
-            r_ins.replace(rep)
-    return (anomaly_index)
+from . import osESD_Test, osESD_Transform
 
 
+def osESD(
+    data,
+    dwins,
+    rwins,
+    train_size,
+    alpha,
+    maxr,
+    condition,
+    time=None,
+    sync_stats=False,
+    use_author_lambda=False,
+):
+    """Run the online sequential ESD detector.
 
+    Parameters
+    ----------
+    data : list or array-like
+        Full time-series values.
+    dwins : int
+        Change-rate window size (dwin).
+    rwins : int
+        Residual window size (rwin).
+    train_size : int
+        Number of points used for offline initialisation.
+    alpha : float
+        ESD significance level.
+    maxr : int
+        Maximum number of anomalies tested per window per step.
+    condition : bool
+        True  → AND condition (both c and r must flag).
+        False → OR  condition (either c or r flags).
+    time : list, optional
+        Timestamps.  Defaults to 1, 2, …, len(data).
+    sync_stats : bool, optional
+        If True, update the SESD sliding statistics after replacement so
+        the test window reflects the corrected value.  The paper does not
+        specify this; default is False (off) to match original behaviour.
+    use_author_lambda : bool, optional
+        Use the author's original lambda denominator (size + t²) instead
+        of the Rosner standard (size - 2 + t²).  Default False (Rosner).
+
+    Returns
+    -------
+    list of int
+        Zero-based indices of detected anomalies in `data`.
+    """
+    if time is None:
+        time = list(range(1, len(data) + 1))
+
+    off_d, on_d = data[:train_size], data[train_size:]
+    off_t, on_t = time[:train_size], time[train_size:]
+
+    # --- Build transform objects on training window -----------------------
+    c = osESD_Transform.TCHA(off_d, dwins, off_t)
+    r = osESD_Transform.TRES(off_d, rwins, off_t)
+
+    # --- Initialise SESD detectors from training vectors ------------------
+    sc = osESD_Test.SESD(c.vec, alpha, maxr, use_author_lambda=use_author_lambda)
+    sr = osESD_Test.SESD(r.vec, alpha, maxr, use_author_lambda=use_author_lambda)
+
+    anomalies = []
+
+    for i, (x, t) in enumerate(zip(on_d, on_t)):
+        ca = sc.test(c.update(x, t))
+        ra = sr.test(r.update(x, t))
+
+        is_anomaly = (ca and ra) if condition else (ca or ra)
+
+        if is_anomaly:
+            anomalies.append(i + train_size)
+
+            # Replacement value: regression prediction at the anomalous
+            # timestamp, fitted on the n-1 preceding clean observations
+            # (leave-one-out fit excludes the anomalous point itself).
+            rep = r.loo_prediction()
+            c.replace(rep)
+            r.replace(rep)
+
+            # Optionally keep SESD windows consistent with replaced value
+            if sync_stats:
+                sc.replace_last(c.last)
+                sr.replace_last(r.last)
+
+    return anomalies

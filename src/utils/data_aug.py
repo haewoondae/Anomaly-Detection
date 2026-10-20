@@ -1,132 +1,188 @@
+"""Data augmentation utilities for osESD.
 
+contaminate() injects pseudo-anomalies into a clean time series following
+the injection scheme described in Section 3.5 / Eq. (12) of the paper.
 
+Key design decisions
+--------------------
+* The perturbation scale uses the **local** standard deviation — computed
+  on the segment since the previous injected anomaly — rather than the
+  cumulative sd of the entire prefix.  This matches the intent of Eq. (12).
+* Multiplier distributions match the four named strategies in the paper.
+* A seeded RNG is exposed so results are reproducible.
+"""
 
 import numpy as np
+from scipy.stats import norm
+
 import pandas as pd
 import matplotlib.pyplot as plt
 import warnings
-from scipy.stats import norm
 from datetime import datetime
-warnings.filterwarnings(action='ignore')
 
-def bernoulli():
-    return np.random.choice([-1, 1], 10000, p=[0.5, 0.5])
+warnings.filterwarnings(action="ignore")
 
-def uniform():
-    return np.random.uniform(-1, 1, 10000)
 
-def linear():
-    L = 10000
-    x = np.arange(1, L + 1)
-    probs = np.linspace(0, 1, L)
-    probs = probs / np.sum(probs)
-    samples = np.random.choice(x / L, size=L, replace=True, p=probs)
-    signs = bernoulli()
-    return samples * signs
+# ===========================================================================
+# Multiplier distributions
+# ===========================================================================
 
-def quadratic():
-    L = 10000
-    x = np.arange(1, L + 1)
-    probs = np.linspace(0, 1, L)
-    probs = (probs ** 2) / np.sum(probs ** 2)
-    samples = np.random.choice(x / L, size=L, replace=True, p=probs)
-    signs = bernoulli()
-    return samples * signs
+def sample_multiplier(kind: str, rng: np.random.Generator) -> float:
+    """Return one signed multiplier M drawn from the requested distribution.
 
-# def add_timestamp(dataframe):
-#     try:
-#         dataframe = dataframe[['timestamps','value','anomaly']]
-#     except:
-#         dataframe = dataframe[['value','anomaly']]
-#         dataframe['timestamps']=[i for i in range(1,len(dataframe)+1)]
-#     return dataframe
+    Parameters
+    ----------
+    kind : str
+        One of 'bernoulli'/'ber', 'uniform'/'uni', 'linear'/'lin',
+        'quadratic'/'quad'.
+    rng : np.random.Generator
+
+    Returns
+    -------
+    float in [-1, 1]
+    """
+    s = rng.choice([-1.0, 1.0])
+    kind = kind.lower()
+    if kind in ("bernoulli", "ber"):
+        return s
+    if kind in ("linear", "lin"):
+        # |M| ~ triangular on [0,1] with PDF f(m)=2m  →  CDF^{-1} = sqrt(U)
+        return s * float(np.sqrt(rng.uniform()))
+    if kind in ("quadratic", "quad"):
+        # |M| ~ PDF f(m)=3m^2  →  CDF^{-1} = U^{1/3}
+        return s * float(rng.uniform() ** (1.0 / 3.0))
+    if kind in ("uniform", "uni"):
+        return float(rng.uniform(-1, 1))
+    raise ValueError(
+        f"kind must be 'bernoulli', 'uniform', 'linear', or 'quadratic'; got {kind!r}"
+    )
+
+
+# ===========================================================================
+# Main injection function
+# ===========================================================================
+
+def contaminate(ts, alpha, anom_percent, kind, local_sd=True, seed=None):
+    """Inject pseudo-anomalies into time series `ts`.
+
+    Implements Eq. (12):
+        x̃_p = x_p  +  M · s_p · z_{1-α/2}
+
+    where s_p is the standard deviation of the *local* segment since the
+    previous injected anomaly (local_sd=True, default) or the entire
+    prefix (local_sd=False, matches the original author code behaviour).
+
+    Parameters
+    ----------
+    ts : array-like
+        Clean time series.
+    alpha : float
+        Nominal detection level used to set the injection magnitude.
+    anom_percent : float
+        Probability that any given time step is selected for injection.
+    kind : str
+        Multiplier distribution ('bernoulli', 'uniform', 'linear', 'quadratic').
+    local_sd : bool
+        If True (default) compute s_p on the segment since the last anomaly.
+    seed : int or None
+        Random seed for reproducibility.
+
+    Returns
+    -------
+    dict with keys:
+        'value'   : np.ndarray  (contaminated series)
+        'anomaly' : pd.Categorical (0/1 labels)
+    """
+    rng = np.random.default_rng(seed)
+    y0 = np.asarray(ts, dtype=float)
+    y = y0.copy()
+    z = norm.ppf(1 - alpha / 2)
+    label = np.zeros(len(y), dtype=int)
+
+    prev = 0  # index of the previous injected anomaly (or series start)
+
+    for p in range(1, len(y)):
+        if rng.uniform() < anom_percent:
+            # Choose the segment for sd estimation
+            lo = prev if local_sd else 0
+            seg = y0[lo:p]
+            if len(seg) < 2:
+                seg = y0[:p]
+            if len(seg) < 2:
+                continue  # not enough data to estimate sd
+
+            sd_p = float(np.std(seg, ddof=1))
+            y[p] = y0[p] + sample_multiplier(kind, rng) * sd_p * z
+            label[p] = 1
+            prev = p
+
+    anomal_val = pd.Series(label, dtype="category")
+    return {"value": y, "anomaly": anomal_val}
+
+
+# ===========================================================================
+# Helper utilities (kept for backward compatibility)
+# ===========================================================================
 
 def add_timestamp(dataframe):
-    if 'timestamps' not in dataframe.columns:
-        dataframe['timestamps'] = [i for i in range(1, len(dataframe) + 1)]
+    if "timestamps" not in dataframe.columns:
+        dataframe["timestamps"] = list(range(1, len(dataframe) + 1))
     return dataframe
 
-def change_to_timestamp(df,column,format):
-    df['timestamps'] = df[column].apply(lambda x:datetime.timestamp(datetime.strptime(x,format)))
+
+def change_to_timestamp(df, column, fmt):
+    df["timestamps"] = df[column].apply(
+        lambda x: datetime.timestamp(datetime.strptime(x, fmt))
+    )
     return df
 
+
 def change_to_index(values, length):
-    temp = [0 for _ in range(length)]
+    temp = [0] * length
     for i in values:
         temp[i] = 1
     return temp
 
-# def change_to_value(indices, length):
-#     temp
 
 def math_round(x):
-    M = x//1
-    return M if x-M<0.5 else M+1
+    M = x // 1
+    return M if x - M < 0.5 else M + 1
 
-def contaminate(ts, alpha, anom_percent, func):
 
-    def update(List, old_mean, old_sd, new_val):
-        # print(new_val, old_mean)
-        Len = len(List)
-        new_std = np.sqrt(((Len - 1) / Len) * old_sd ** 2 + (1 / (Len + 1)) * (new_val - old_mean) ** 2)
-        new_mean = old_mean * (Len) / (Len + 1) + new_val / (Len + 1)
-        List.append(new_val)
-        return {'mean': new_mean, 'sd': new_std, 'List': List}
+# ===========================================================================
+# Stand-alone multiplier generators (legacy — used by original __main__ block)
+# ===========================================================================
 
-    L = len(ts)
+def bernoulli(n=10000):
+    return np.random.choice([-1, 1], n, p=[0.5, 0.5])
 
-    X_t = [ts[0]]
-    X_t_mean = ts[0]
-    X_t_sd = 0
 
-    anomal_index = []
-    randoms = np.random.uniform(0, 1, L)
+def uniform(n=10000):
+    return np.random.uniform(-1, 1, n)
 
-    if func.lower() in ['bernoulli', 'ber']:
-        samples = bernoulli()
-    elif func.lower() in ['uniform', 'uni']:
-        samples = uniform()
-    elif func.lower() in ['linear', 'lin']:
-        samples = linear()
-    elif func.lower() in ['quadratic', 'quad']:
-        samples = quadratic()
-    else:
-        raise ValueError("Anomaly generating function must be 'Bernoulli', 'Uniform', 'Linear', or 'Quadratic'.")
 
-    for i in range(1, L):
-        new_vals = update(X_t, X_t_mean, X_t_sd, ts[i])
-        X_t_mean = new_vals['mean']
-        X_t_sd = new_vals['sd']
-        X_t = new_vals['List']
-        if randoms[i] < anom_percent:
-            multiplier = np.random.choice(samples, 1)
-            anomal_index.append(i)
-            ts[i] = ts[i] + (multiplier * norm.ppf(1 - alpha / 2, loc=0, scale=X_t_sd))
+def linear(n=10000):
+    x = np.arange(1, n + 1)
+    probs = np.linspace(0, 1, n)
+    probs /= probs.sum()
+    samples = np.random.choice(x / n, size=n, replace=True, p=probs)
+    return samples * bernoulli(n)
 
-    anomal_val = np.zeros(len(ts))
-    anomal_val[anomal_index] = 1
-    anomal_val = pd.Series(anomal_val, dtype='category')
-    return {'value': ts, 'anomaly': anomal_val}
+
+def quadratic(n=10000):
+    x = np.arange(1, n + 1)
+    probs = np.linspace(0, 1, n) ** 2
+    probs /= probs.sum()
+    samples = np.random.choice(x / n, size=n, replace=True, p=probs)
+    return samples * bernoulli(n)
 
 
 if __name__ == "__main__":
-    plt.hist(bernoulli(), bins=100)
-    plt.savefig(fname='..//results//plots//bernoulli_distribution.png')
-    plt.show()
-
-    plt.hist(uniform(), bins=100)
-    plt.savefig(fname='..//results//plots//uniform_distribution.png')
-    plt.show()
-
-    plt.hist(linear(), bins=100)
-    plt.savefig(fname='..//results//plots//linear_distribution.png')
-    plt.show()
-
-    plt.hist(quadratic(), bins=100)
-    plt.savefig(fname='..//results//plots//quadratic_distribution.png')
-    plt.show()
-
-
-
-
-
+    for name, fn in [("bernoulli", bernoulli), ("uniform", uniform),
+                     ("linear", linear), ("quadratic", quadratic)]:
+        plt.figure()
+        plt.hist(fn(), bins=100)
+        plt.title(name)
+        plt.tight_layout()
+        plt.savefig(f"../results/plots/{name}_distribution.png")
+        plt.show()

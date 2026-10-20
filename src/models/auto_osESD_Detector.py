@@ -218,25 +218,19 @@ def run_osESD_modified(data, time, full_size, init_size, params):
     online_time = time[init_size:full_size]
     c_ins = osESD_Transform.TCHA(data=train_data, time=train_time, wins=params[3])
     r_ins = osESD_Transform.TRES(data=train_data, time=train_time, wins=rwins)
-    SESD_TCHA = osESD_Test.SESD_tcha(data=c_ins.tcha.copy(), alpha=params[5], maxr=params[2])
-    SESD_TRES = osESD_Test.SESD_tres(data=r_ins.tres.copy(), alpha=params[5], maxr=params[2])
+    SESD_TCHA = osESD_Test.SESD(data=c_ins.vec.copy(), alpha=params[5], maxr=params[2])
+    SESD_TRES = osESD_Test.SESD(data=r_ins.vec.copy(), alpha=params[5], maxr=params[2])
     anomaly_index = []
     for i in range(len(online_data)):
         ranom = SESD_TRES.test(r_ins.update(online_data[i], online_time[i]))
         canom = SESD_TCHA.test(c_ins.update(online_data[i], online_time[i]))
-        if params[0]==0: function_ = (canom or ranom)
-        else: function_ = (canom and ranom)
-        if function_ :
+        if params[0] == 0:
+            function_ = canom or ranom
+        else:
+            function_ = canom and ranom
+        if function_:
             anomaly_index.append(i + init_size)
-            D = r_ins.data.copy()
-            T = r_ins.time.copy()
-            del D[rwins - 1]
-            del T[rwins - 1]
-            x_bar = ((rwins * r_ins.x_bar) - r_ins.time[rwins - 1]) / (rwins - 1)
-            y_bar = ((rwins * r_ins.y_bar) - r_ins.data[rwins - 1]) / (rwins - 1)
-            beta_ = sum((T - x_bar) * (D - y_bar)) / sum((T - x_bar) ** 2)
-            alpha_ = y_bar - beta_ * x_bar
-            rep = alpha_ + beta_ * T[rwins - 2]
+            rep = r_ins.loo_prediction()
             c_ins.replace(rep)
             r_ins.replace(rep)
     pred_outlier = [0 for _ in range(full_size)]
