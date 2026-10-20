@@ -20,7 +20,7 @@ def osESD_Detector_auto(
     seed=None,
     legacy_cap=False,
     use_author_lambda=False,
-    rep_at="loo",
+    rep_at="author",
 ):
 
     if (sum(weights)<=0):
@@ -248,7 +248,7 @@ def osESD_Detector_auto(
             final_anomaly_preds.append(i)
     return final_anomaly_index, final_anomaly_preds, Final_Param
 
-def run_osESD_modified(data, time, full_size, init_size, params, use_author_lambda=False, rep_at="loo"):
+def run_osESD_modified(data, time, full_size, init_size, params, use_author_lambda=False, rep_at="author"):
     rwins=params[4]
     train_data = data[:init_size]
     online_data = data[init_size:full_size]

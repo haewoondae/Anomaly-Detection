@@ -17,7 +17,7 @@ from utils import plotting_modules
 
 def osESD(df, labeled=True, value_name='value',
         timestamp_name='timestamps', anomaly_name='anomaly', size=100, condition=True, dwin=5,
-        rwin=5, maxr=10, alpha=0.01, sync_stats=False, use_author_lambda=False, rep_at='loo'):
+        rwin=5, maxr=10, alpha=0.01, sync_stats=False, use_author_lambda=False, rep_at='author'):
 
     if value_name not in df.columns:
         raise ValueError("Value column can not be found. Please specify column name with time series values as 'value_name'.")
@@ -57,7 +57,7 @@ def osESD(df, labeled=True, value_name='value',
 def auto_osESD(dataset, labeled=True, value_name='value', timestamp_name='timestamps', anomaly_name='anomaly', 
          sizes=[], conditions=[], dwins=[], rwins=[], maxrs=[], alphas=[], 
          weights=[0,0,1,0], learning_length=0.2, min_max_switch=False, seed=None,
-         legacy_cap=False, use_author_lambda=False, rep_at='loo'):
+         legacy_cap=False, use_author_lambda=False, rep_at='author'):
     
     if value_name not in dataset.columns:
         raise ValueError("Value column can not be found. Please specify column name with time series values as 'value_name'.")

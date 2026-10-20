@@ -18,7 +18,7 @@ def osESD(
     time=None,
     sync_stats=False,
     use_author_lambda=False,
-    rep_at="loo",
+    rep_at="author",
 ):
     """Run the online sequential ESD detector.
 
@@ -50,9 +50,9 @@ def osESD(
         of the Rosner standard (size - 2 + t²).  Default False (Rosner).
     rep_at : str, optional
         Strategy for computing the replacement value when an anomaly occurs:
+        - 'prev' or 'author': 이상치를 제외한 n-1개로 적합해 직전 시점에서 예측 (default, replicates original author codebase).
         - 'loo': regression prediction at anomalous timestamp using the leave-one-out
-                 fit of preceding n-1 points (default, proper online imputation).
-        - 'prev' or 'author': 이상치를 제외한 n-1개로 적합해 직전 시점에서 예측 (replicates original author codebase).
+                 fit of preceding n-1 points. (실험 옵션, 작은 rwin(≤5)에서 과탐지 위험이 있음).
 
     Returns
     -------
