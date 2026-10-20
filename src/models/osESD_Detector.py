@@ -18,6 +18,7 @@ def osESD(
     time=None,
     sync_stats=False,
     use_author_lambda=False,
+    rep_at="loo",
 ):
     """Run the online sequential ESD detector.
 
@@ -47,6 +48,12 @@ def osESD(
     use_author_lambda : bool, optional
         Use the author's original lambda denominator (size + t²) instead
         of the Rosner standard (size - 2 + t²).  Default False (Rosner).
+    rep_at : str, optional
+        Strategy for computing the replacement value when an anomaly occurs:
+        - 'loo': regression prediction at anomalous timestamp using the leave-one-out
+                 fit of preceding n-1 points (default, proper online imputation).
+        - 'prev' or 'author': regression prediction fitted on [t_{i-1}, t_i] but evaluated
+                 at the previous timestamp t_{i-1} (replicates original author codebase).
 
     Returns
     -------
@@ -78,10 +85,17 @@ def osESD(
         if is_anomaly:
             anomalies.append(i + train_size)
 
-            # Replacement value: regression prediction at the anomalous
-            # timestamp, fitted on the n-1 preceding clean observations
-            # (leave-one-out fit excludes the anomalous point itself).
-            rep = r.loo_prediction()
+            # Replacement value computation
+            if rep_at in ("prev", "author"):
+                # Original author style: alpha_hat + beta_hat * t_{i-1}
+                tl = r._t[-1]
+                t_prev = r._t[-2] if len(r._t) >= 2 else tl - 1.0
+                a, b = r._fit(r.n, r.St, r.Sx, r.Stt, r.Stx)
+                rep = a + b * t_prev
+            else:
+                # Leave-one-out prediction at current anomalous timestamp
+                rep = r.loo_prediction()
+
             c.replace(rep)
             r.replace(rep)
 

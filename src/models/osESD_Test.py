@@ -12,8 +12,8 @@ def get_lambda(alpha, size):
     standard formula:
         lambda_m = (n-m) * t_{p, n-m-1} / sqrt((n-m-1 + t²)(n-m+1))
     The original author code uses (size + t²) in the denominator, yielding
-    a lambda ~1.6% smaller at typical window sizes. Both versions are kept
-    via the `rosner` flag for A/B comparison against the Appendix example.
+    a lambda ~1.6% smaller at typical window sizes. Both versions are supported
+    via the `use_author_lambda` flag for A/B comparison against the Appendix example.
     """
     if size < 4:
         return 0.0
@@ -127,12 +127,11 @@ class SESD:
 
 class SESD_tres(SESD):
     """Alias kept for backward compatibility with auto_osESD_Detector.py."""
-    def __init__(self, data, alpha=0.01, maxr=10):
-        # auto_osESD_Detector passes a list; convert via parent
-        super().__init__(data=np.asarray(data, dtype=float), alpha=alpha, maxr=maxr)
+    def __init__(self, data, alpha=0.01, maxr=10, use_author_lambda=False):
+        super().__init__(data=np.asarray(data, dtype=float), alpha=alpha, maxr=maxr, use_author_lambda=use_author_lambda)
 
 
 class SESD_tcha(SESD):
     """Alias kept for backward compatibility with auto_osESD_Detector.py."""
-    def __init__(self, data, alpha=0.01, maxr=10):
-        super().__init__(data=np.asarray(data, dtype=float), alpha=alpha, maxr=maxr)
+    def __init__(self, data, alpha=0.01, maxr=10, use_author_lambda=False):
+        super().__init__(data=np.asarray(data, dtype=float), alpha=alpha, maxr=maxr, use_author_lambda=use_author_lambda)

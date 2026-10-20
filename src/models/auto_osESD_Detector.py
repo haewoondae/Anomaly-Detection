@@ -10,7 +10,7 @@ from utils.data_aug import math_round
 from utils.data_aug import contaminate
 from utils.data_aug import add_timestamp
 
-def osESD_Detector_auto(database, data_label, weights, par_len, parameters, min_max_switch):
+def osESD_Detector_auto(database, data_label, weights, par_len, parameters, min_max_switch, seed=None):
 
     if (sum(weights)<=0):
         raise Exception("Weight value must be above 0.")
@@ -85,7 +85,7 @@ def osESD_Detector_auto(database, data_label, weights, par_len, parameters, min_
         anoms = list(database['anomaly'])
         par_anoms = list(anoms[:par_len])
     else:
-        cont_data = contaminate(database['value'],0.05,0.02,'ber')
+        cont_data = contaminate(database['value'],0.05,0.02,'ber', seed=seed)
         data = list(cont_data['value'][:par_len].astype(float))
         anoms = list(cont_data['anomaly'])
         par_anoms = list(anoms[:par_len])
@@ -118,11 +118,18 @@ def osESD_Detector_auto(database, data_label, weights, par_len, parameters, min_
                             param_idx+=1
                             if (param_idx)%(Total_length//4)==0:
                                 print("Process : [ {} / {} ]".format(param_idx,Total_length))
-                            win_size = min(win_size, int(par_len*0.1))
-                            new_pars = [andor,win_size,maxr,dwin,rwin,alpha]
+
+                            # Valid window size guard:
+                            # 1) Must not exceed training length par_len
+                            # 2) Must be larger than dwin and rwin
+                            w_eff = min(win_size, par_len)
+                            if w_eff <= max(dwin, rwin):
+                                continue
+
+                            new_pars = [andor,w_eff,maxr,dwin,rwin,alpha]
                             t1 = t.time()
                             anomal_preds = run_osESD_modified(data=data,time=time,
-                                                     full_size=par_len,init_size=win_size,
+                                                     full_size=par_len,init_size=w_eff,
                                                      params=new_pars)
                             t2 = t.time()
                             # scores = Precision_Recall_f1score(par_anoms, anomal_preds)
@@ -156,32 +163,45 @@ def osESD_Detector_auto(database, data_label, weights, par_len, parameters, min_
 
     ADD = 4
     new_params=[]
-    new_params.append(Max_Pars1)
-    for i in range(1, ADD):
-        new_param = [math_round((Max_Pars1[0] * (ADD - i) + Max_Pars2[0] * i) / ADD)]
-        for x, y in zip(Max_Pars1[1:-1], Max_Pars2[1:-1]):
-            new_param.append(int((x * (ADD - i) + y * i) / ADD))
-        new_param.append((Max_Pars1[-1] * (ADD - i) + Max_Pars2[-1] * i) / ADD)
-        new_params.append(new_param)
+    if Max_Pars1:
+        new_params.append(Max_Pars1)
+    if Max_Pars1 and Max_Pars2:
+        for i in range(1, ADD):
+            new_param = [math_round((Max_Pars1[0] * (ADD - i) + Max_Pars2[0] * i) / ADD)]
+            for x, y in zip(Max_Pars1[1:-1], Max_Pars2[1:-1]):
+                new_param.append(int((x * (ADD - i) + y * i) / ADD))
+            new_param.append((Max_Pars1[-1] * (ADD - i) + Max_Pars2[-1] * i) / ADD)
+            if new_param[1] > max(new_param[3], new_param[4]):
+                new_params.append(new_param)
 
-    new_params.append(Max_Pars2)
-    for i in range(1, ADD):
-        new_param = [math_round((Max_Pars1[0] * (ADD - i) + Max_Pars5[0] * i) / ADD)]
-        for x, y in zip(Max_Pars1[1:-1], Max_Pars5[1:-1]):
-            new_param.append(int((x * (ADD - i) + y * i) / ADD))
-        new_param.append((Max_Pars1[-1] * (ADD - i) + Max_Pars5[-1] * i) / ADD)
-        new_params.append(new_param)
+        new_params.append(Max_Pars2)
 
-    new_params.append(Max_Pars5)
-    for i in range(1, ADD):
-        new_param = [math_round((Max_Pars2[0] * (ADD - i) + Max_Pars5[0] * i) / ADD)]
-        for x, y in zip(Max_Pars2[1:-1], Max_Pars5[1:-1]):
-            new_param.append(int((x * (ADD - i) + y * i) / ADD))
-        new_param.append((Max_Pars2[-1] * (ADD - i) + Max_Pars5[-1] * i) / ADD)
-        new_params.append(new_param)
+    if Max_Pars1 and Max_Pars5:
+        for i in range(1, ADD):
+            new_param = [math_round((Max_Pars1[0] * (ADD - i) + Max_Pars5[0] * i) / ADD)]
+            for x, y in zip(Max_Pars1[1:-1], Max_Pars5[1:-1]):
+                new_param.append(int((x * (ADD - i) + y * i) / ADD))
+            new_param.append((Max_Pars1[-1] * (ADD - i) + Max_Pars5[-1] * i) / ADD)
+            if new_param[1] > max(new_param[3], new_param[4]):
+                new_params.append(new_param)
 
+        new_params.append(Max_Pars5)
+
+    if Max_Pars2 and Max_Pars5:
+        for i in range(1, ADD):
+            new_param = [math_round((Max_Pars2[0] * (ADD - i) + Max_Pars5[0] * i) / ADD)]
+            for x, y in zip(Max_Pars2[1:-1], Max_Pars5[1:-1]):
+                new_param.append(int((x * (ADD - i) + y * i) / ADD))
+            new_param.append((Max_Pars2[-1] * (ADD - i) + Max_Pars5[-1] * i) / ADD)
+            if new_param[1] > max(new_param[3], new_param[4]):
+                new_params.append(new_param)
+
+    if not new_params:
+        # Fallback to default if no valid combinations found
+        new_params = [[1, 50, 5, 5, 5, 0.01]]
 
     Final_Score = -1
+    Final_Param = new_params[0]
     # second_step_idx=0
     for param in new_params:
         t1 = t.time()
@@ -200,12 +220,13 @@ def osESD_Detector_auto(database, data_label, weights, par_len, parameters, min_
             Final_Score = Score
 
     t1 = t.time()
-    final_anomaly_index= run_osESD_modified(data=list(database['value']), time=time, full_size=len(data),
+    full_dataset_len = len(database)
+    final_anomaly_index= run_osESD_modified(data=list(database['value'].astype(float)), time=time, full_size=full_dataset_len,
                                     init_size=Final_Param[1], params=Final_Param)
     t2 = t.time()
     final_anomaly_preds = []
     # print(Final_Param)
-    for i in range(Final_Param[1]+1,len(final_anomaly_index)):
+    for i in range(Final_Param[1], len(final_anomaly_index)):
         if final_anomaly_index[i]==1:
             final_anomaly_preds.append(i)
     return final_anomaly_index, final_anomaly_preds, Final_Param

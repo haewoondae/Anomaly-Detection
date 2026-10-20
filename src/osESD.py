@@ -17,33 +17,36 @@ from utils import plotting_modules
 
 def osESD(df, labeled=True, value_name='value',
         timestamp_name='timestamps', anomaly_name='anomaly', size=100, condition=True, dwin=5,
-        rwin=5,maxr=10, alpha=0.01):
+        rwin=5, maxr=10, alpha=0.01, sync_stats=False, use_author_lambda=False, rep_at='loo'):
 
     if value_name not in df.columns:
-        raise ValueError("Value column can not be found. Please specify column name with time series values as \'value_name\'.")
+        raise ValueError("Value column can not be found. Please specify column name with time series values as 'value_name'.")
 
-    if anomaly_name not in df.columns:
-        raise ValueError("Anomaly column can not be found. Please specify column name with time series values as \'anomaly_name\'.")
-    
+    if labeled and anomaly_name not in df.columns:
+        raise ValueError("Anomaly column can not be found. Please specify column name with time series values as 'anomaly_name'.")
+
+    df = df.copy()
     ### Add timestamps to dataset if not labeled.
     if timestamp_name in df.columns:
         df['timestamps']=df[timestamp_name]
     else:
         df['timestamps']=[i for i in range(1,len(df)+1)]
 
-    ### Deal with whether dataset is labeled or not. If labeled, then f1-scores will be returned as well.
-    ### If not, then only index and a plot of predicted anomalies will be returned.
+    ### Deal with whether dataset is labeled or not.
     if labeled:
         df[['value','anomaly']]=df[[value_name,anomaly_name]]
     else:
         df['value']=df[value_name]
 
     T1 = t.time()
-    predictions = osESD_Detector.osESD(data=list(df['value']),
+    predictions = osESD_Detector.osESD(data=list(df['value'].astype(float)),
                                     time=list(df['timestamps']),
                                     train_size=size, condition=condition,
                                     dwins=dwin, rwins=rwin,
-                                    alpha=alpha, maxr=maxr)
+                                    alpha=alpha, maxr=maxr,
+                                    sync_stats=sync_stats,
+                                    use_author_lambda=use_author_lambda,
+                                    rep_at=rep_at)
 
     return predictions
 
@@ -53,18 +56,16 @@ def osESD(df, labeled=True, value_name='value',
 
 def auto_osESD(dataset, labeled=True, value_name='value', timestamp_name='timestamps', anomaly_name='anomaly', 
          sizes=[], conditions=[], dwins=[], rwins=[], maxrs=[], alphas=[], 
-         weights=[0,0,1,0], learning_length=0.2, min_max_switch=False):
+         weights=[0,0,1,0], learning_length=0.2, min_max_switch=False, seed=None):
     
     if value_name not in dataset.columns:
-        raise ValueError("Value column can not be found. Please specify column name with time series values as \'value_name\'.")
+        raise ValueError("Value column can not be found. Please specify column name with time series values as 'value_name'.")
 
-    if anomaly_name not in dataset.columns:
-        raise ValueError("Anomaly column can not be found. Please specify column name with time series values as \'anomaly_name\'.")
-
-
+    if labeled and anomaly_name not in dataset.columns:
+        raise ValueError("Anomaly column can not be found. Please specify column name with time series values as 'anomaly_name'.")
 
     ### Read dataset.
-    df = dataset
+    df = dataset.copy()
 
     ### Add timestamps to dataset if not labeled.
     if timestamp_name in df.columns:
@@ -72,8 +73,7 @@ def auto_osESD(dataset, labeled=True, value_name='value', timestamp_name='timest
     else:
         df['timestamps'] = [i for i in range(1, len(df) + 1)]
 
-    ### Deal with whether dataset is labeled or not. If labeled, then f1-scores will be returned as well.
-    ### If not, then only index and a plot of predicted anomalies will be returned.
+    ### Deal with whether dataset is labeled or not.
     if labeled:
         df[['value', 'anomaly']] = df[[value_name, anomaly_name]]
     else:
@@ -124,14 +124,14 @@ def auto_osESD(dataset, labeled=True, value_name='value', timestamp_name='timest
         ]
 
     ### Run function 'osESD_Detector_auto' which will return [anomaly_list, anomaly_indices, best_parameters].
-    ### Then use best_parameters (tuning_results[2]) to find final anomalies in full dataset.
     T1 = t.time()
     tuning_results = auto_osESD_Detector.osESD_Detector_auto(database=df, data_label=labeled,
                                                              weights=weights,
                                                              par_len=learning_length,
-                                                             parameters=parameters, min_max_switch=min_max_switch)
+                                                             parameters=parameters, min_max_switch=min_max_switch,
+                                                             seed=seed)
     tuning_params = tuning_results[2]
-    predictions = auto_osESD_Detector.run_osESD_modified(data=list(df['value']), time=list(df['timestamps']),
+    predictions = auto_osESD_Detector.run_osESD_modified(data=list(df['value'].astype(float)), time=list(df['timestamps']),
                                                         full_size=len(df), init_size=tuning_params[1],
                                                         params=tuning_params)
     T2 = t.time()

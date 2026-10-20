@@ -17,7 +17,7 @@ class TCHA:
     """Change-rate trend vector, Eq. (3).
 
     Each element is the slope between the two endpoints of a dwin-length
-    window:  c_i = (x_{i} - x_{i - dwin}) / (t_{i} - t_{i - dwin})
+    window:  c_i = (x_{i} - x_{i - dwin + 1}) / (t_{i} - t_{i - dwin + 1})
 
     Parameters
     ----------
@@ -145,8 +145,9 @@ class TRES:
     def _fit(self, n, St, Sx, Stt, Stx):
         """Return (alpha, beta) from sufficient statistics."""
         denom = Stt - St * St / n
-        if abs(denom) < 1e-12:
-            # Degenerate (all timestamps equal): fall back to mean
+        scale = max(Stt, 1.0)
+        if abs(denom) <= 1e-12 * scale:
+            # Degenerate (all timestamps equal / collinear): fall back to mean
             return Sx / n, 0.0
         beta = (Stx - St * Sx / n) / denom
         alpha = (Sx - beta * St) / n
@@ -212,7 +213,7 @@ class TRES:
         self.last = self._resid()
 
     # ------------------------------------------------------------------
-    # Backward-compatibility shims (used by auto_osESD_Detector.py)
+    # Backward-compatibility shims
     # ------------------------------------------------------------------
 
     @property
@@ -226,11 +227,13 @@ class TRES:
 
     @property
     def x_bar(self):
-        return self.Sx / self.n
+        """Mean of time values in current window (absolute time scale)."""
+        return (self.St / self.n) + self.t0
 
     @property
     def y_bar(self):
-        return self.Sx / self.n   # kept for API compat; auto_osESD uses this name
+        """Mean of raw data values in current window."""
+        return self.Sx / self.n
 
     @property
     def tres(self):
