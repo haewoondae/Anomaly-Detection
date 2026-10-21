@@ -57,7 +57,7 @@ def osESD(df, labeled=True, value_name='value',
 def auto_osESD(dataset, labeled=True, value_name='value', timestamp_name='timestamps', anomaly_name='anomaly', 
          sizes=[], conditions=[], dwins=[], rwins=[], maxrs=[], alphas=[], 
          weights=[0,0,1,0], learning_length=0.2, min_max_switch=False, seed=None,
-         legacy_cap=False, use_author_lambda=False, rep_at='author'):
+         legacy_cap=False, use_author_lambda=False, rep_at='author', injector=None):
     
     if value_name not in dataset.columns:
         raise ValueError("Value column can not be found. Please specify column name with time series values as 'value_name'.")
@@ -133,7 +133,8 @@ def auto_osESD(dataset, labeled=True, value_name='value', timestamp_name='timest
                                                              seed=seed,
                                                              legacy_cap=legacy_cap,
                                                              use_author_lambda=use_author_lambda,
-                                                             rep_at=rep_at)
+                                                             rep_at=rep_at,
+                                                             injector=injector)
     tuning_params = tuning_results[2]
     predictions = auto_osESD_Detector.run_osESD_modified(data=list(df['value'].astype(float)), time=list(df['timestamps']),
                                                         full_size=len(df), init_size=tuning_params[1],

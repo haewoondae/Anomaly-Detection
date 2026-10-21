@@ -21,6 +21,7 @@ def osESD_Detector_auto(
     legacy_cap=False,
     use_author_lambda=False,
     rep_at="author",
+    injector=None,
 ):
 
     if (sum(weights)<=0):
@@ -96,7 +97,10 @@ def osESD_Detector_auto(
         anoms = list(database['anomaly'])
         par_anoms = list(anoms[:par_len])
     else:
-        cont_data = contaminate(database['value'],0.05,0.02,'ber', seed=seed)
+        if injector is not None:
+            cont_data = injector(database['value'], seed)
+        else:
+            cont_data = contaminate(database['value'], 0.05, 0.02, 'ber', seed=seed, local_sd=not legacy_cap)
         data = list(cont_data['value'][:par_len].astype(float))
         anoms = list(cont_data['anomaly'])
         par_anoms = list(anoms[:par_len])
