@@ -1,0 +1,45 @@
+1 3
+  713 
+ 
+Page 20 of 31
+Cluster Computing          (2026) 29:713 
+Table 6  Basic parameters of auto osESD
+Parameter
+Values
+Window size
+50,100,150,200
+Choice condition
+And, Or
+maxr
+3,5,7,10
+dwin
+2,5,10,30
+rwin
+4,5,10,30
+Alpha
+0.001,0.005,0.01,0.05
+The results are as follows:
+Will use suggested parameters.
+Process : [1/128]
+Process : [32/128]
+Process : [64/128]
+Process : [96/128]
+Process : [128/128]
+Now doing second step.
+Precision 
+: 
+1.0, 
+Recall 
+: 
+0.98989898989899, 
+F1-score 
+: 
+0.9949238578680203, Time : 245.853 sec
+Real : [77, 137, 153, 214, 262, 289, 
+374,..., 9992, 9994]
+Anomalies : [137, 153, 214, 262, 289, 
+374,..., 9992, 9994]
+Finally, if the input dataset is unlabeled with no anoma­
+lies, the labeled parameter should be set to be False. This 
+will produce plots and detect anomaly indices without per­
+formance scores:

@@ -1,0 +1,18 @@
+1 3
+Page 17 of 31 
+  713 
+Cluster Computing          (2026) 29:713 
+This will create a text output and a matplotlib plot in 
+the osESD-py-results directory, provided below in Fig. 8.
+Precision : 1.0, Recall : 1.0, F1-score 
+: 1.0, Time : 0.718 sec
+Real : [623, 624, 625, 658, 659, 660, 
+893, 894, 895]
+Anomalies : [623, 624, 625, 658, 659, 
+660, 893, 894, 895]
+Another example on a seasonal dataset is provided as 
+below. In this example, the parameters are adjusted in the 
+osESD function.
+Fig. 8  Results of the Python osESD test 
+in the BenchmarkA2 dataset
+ 

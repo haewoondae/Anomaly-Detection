@@ -1,0 +1,36 @@
+1 3
+  713 
+ 
+Page 18 of 31
+Cluster Computing          (2026) 29:713 
+Its text output is shown in the following, and the figure 
+in Fig. 9.
+Precision : 1.0, Recall : 1.0, F1-score 
+: 1.0, Time : 5.776 sec
+Real : [137, 153, 214, 262, 289, 
+374,..., 9992, 9994]
+Anomalies : [137, 153, 214, 262, 289, 
+374,..., 9992, 9994]
+Our automated auto_osESD can also be used after 
+importing osESD with from osESD import osESD, 
+auto_osESD. As for parameters, Data is an input dataset, 
+and weights are relative weights for [Precision, Recall, 
+F1-score, time]. If recall has the full weight, then a weight 
+such as [0, 1, 0, 0] should be used. If recall and f1-score 
+must be equally considered, then [0, 1, 1, 0] is suitable. If 
+time and f1-score are the main metric, then weights [0, 0, 
+1, 1] will return the best parameters for that case. par_len 
+is length percentage inline-eq-IEq213 for grid searching. In all tests this is 
+set to 20%.
+If Parameters are provided, auto_osESD will search 
+for all possible cases as specified in Parameters. If not 
+provided, it will use the basic parameter ranges shown in 
+Table 6. Finally, min_max_switch can be either ‘True’ or 
+‘False’, and when it is ‘True’, the function will interpret 
+parameters as endpoints of the parameters. Thus, it will test 
+equally spaced values between the two endpoints, and users 
+only need to specify the start and end points. If specified as 
+‘False’, then the implementation will use only the values 
+provided, whether those are the basic parameters or param­
+eters provided by the user.
+An example with a minimal parameter is as follows:

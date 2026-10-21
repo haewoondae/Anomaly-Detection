@@ -1,0 +1,43 @@
+1 3
+Page 21 of 31 
+  713 
+Cluster Computing          (2026) 29:713 
+The results are as the following:
+Anomalies : [304, 312, 318, 330, 338, 
+474,..., 9894, 9987]
+R Implementation
+We used R in |ver. 4.3.1 (2023-06-16 ucrt)| and RStu­
+dio |ver. 2022.12.0+353|. One can download osESd and 
+auto_osESD without difficulty by using Github as in the 
+following R codes. The link for the Github repository is 
+[10].
+R> library(devtools)
+R> 
+install_github("iguv221/
+osESD",force=TRUE)
+R> library(osESD)
+The libraries, ‘ogtparse’, ‘caret’, ‘tcltk’, ‘reticu­
+late’, and ‘R6’ will be installed with the loading of our 
+package |library(osESD)|. Then, they can be loaded with 
+the following:
+|R> library(ogtparse);library(caret);|
+|R> library(tcltk); library(reticulate); library(R6);|
+Users can run our methods using either osESD or 
+auto_osESD in R. Its testing datasets have been trans­
+formed and packaged in an rda format.
+A simple example of osESD is presented below, starting 
+with loading data.
+R> data(A2Benchmark_synthetic_44)
+R> input_data <- A2Benchmark_synthetic_44
+R> labeled <- TRUE
+R> size <- 100
+R> anoms_1 <- osESD(data=input_data,siz
+e=size)
+R> anoms_1
+Then, the variable anoms_1 will have a list of indices 
+of anomalies. The output is the exact same as its Python 
+counterpart.
+R> anoms_1
+[1] 624 625 626 659 660 661 894 895 896
+As above, a full running code for exporting results and 
+plots can be executed as follows.

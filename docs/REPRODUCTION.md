@@ -9,9 +9,9 @@
 | **Table 2 ARIMA** | **근접 재현** | • 논문 F1 0.963 대비 본 재현 F1 0.941 ($\Delta\text{F1} = -0.022$)<br>• 단, 논문 수치는 미공개 파라미터에 대한 후보군(T-A) 탐색 결과 기반임 |
 | **Table 2(g) State-space** | **정보 부족으로 미확정** | • 논문에 100개 데이터셋의 실제 $\sigma_\epsilon$ 분포가 미공개(Fig. 12는 단순 4개 예시)<br>• $\sigma_\epsilon=300$ 포함 시 Recall이 0.777로 하락하여 논문 보고 Recall 0.999 달성 불가<br>• 사후적 부분 구간 선택($\sigma_\epsilon \le 100$)은 재현 근거로 배제 |
 | **Table 4 ARIMA1** | **정성 일관** | • 2,048 그리드 탐색 파라미터가 논문과 동일한 영역(Window 50, dwin 2, maxr 3~5, rwin 4~10)에 위치하며 F1(0.905~0.982)이 논문 값 $\pm 0.056$ 이내 정합<br>• 단, 6개 파라미터 중 3개 불일치(목적함수 평탄성 및 단일 실현값 데이터 편차 반영) |
-| **Table 3 ablation (sosESD, oGESD, norep)** | **정확 재현** | • ARIMA 96개: osESD(F1 0.945, 11.6s) vs oGESD(0.945, 24.5s) vs sosESD(0.881) vs norep(0.652)<br>• 치환 제거(norep) 시 왜곡으로 성능 급락(0.652), 추세벡터 제거(sos) 시 하락(0.881), oGESD 대비 2.1배 고속화 확인 등 논문의 핵심 주장이 데이터로 완전 검증됨 |
-| **Table 5 주입 민감도, 비교 모델, Yahoo** | **미수행** | 향후 계획 항목 |
-| **부록 예제 (계절성 5.776초 등)** | **부록 코드 이미지 미확보** | 논문 부록 원문 R/Python 코드 스크립트 이미지 미확보 |
+| **Table 3 ablation (sosESD, oGESD, norep)** | **정성적 부분 재현** | • ARIMA 96개: osESD(F1 0.945) > sosESD(0.881) > norep(0.652) 순위와 실행속도 순서(sos < osESD < oGESD)는 일치<br>• 그러나 norep의 정밀도·재현율 패턴(논문: P 높고 R 낮음 vs 이번: P 낮고 R 높음), oGESD 정밀도 붕괴 미재현, State-space(sos가 osESD 역전)는 재현 실패 또는 구현 해석 차이로 규정 |
+| **Table 5 주입 민감도, 비교 모델, Yahoo** | **미수행** | 2단계 진행 예정 |
+| **부록 예제 (계절성 5.776초 및 auto_osESD)** | **부록 코드 이미지 확보 완료** | • 원본 PDF 17~23쪽 7장 확보 완료 (`docs/images/page_17.png`~`page_23.png`)<br>• 5.776초 예제: `seasonal_ber_21.csv` (size=100, dwin=5, rwin=5, maxr=6, alpha=0.01)<br>• auto_osESD 기본 2,048조합(3,478초) 예제: `ARIMA3_lin_4.csv` 확인 완료 |
 
 ---
 

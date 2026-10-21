@@ -1,0 +1,35 @@
+1 3
+Page 19 of 31 
+  713 
+Cluster Computing          (2026) 29:713 
+Fig. 9  Results of the python osESD 
+test in the seasonal dataset
+ 
+Then, after tuning and finding the best parameters, results 
+of both text and plot are similar as the original osESD 
+method:
+No parameters detected, will use basic 
+default for tuning.
+Process : [1/2048]
+Process : [512/2048]
+Process : [1024/2048]
+Process : [1536/2048]
+Process : [2048/2048]
+Now doing second step.
+Precision 
+: 
+1.0, 
+Recall 
+: 
+0.9707317073170731, 
+F1-score 
+: 
+0.9851485148514851, Time : 3478.699 sec
+Real : [33, 49, 97, 99, 200, 279, 300, 
+340,..., 9965, 9971]
+Anomalies : [97, 99, 200, 279, 300, 
+340,..., 9965, 9971]
+Next, users can easily modify parameters as shown 
+below. The below example modified all six parameters 
+(sizes, conditions, alphas, dwins, rwins, and weights), set­
+ting learning length inline-eq-IEq214 to 0.2.
