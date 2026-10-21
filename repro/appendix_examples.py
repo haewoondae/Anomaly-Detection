@@ -1,117 +1,49 @@
-import sys, os, time
+r"""Exact appendix examples of the paper (Python). Run from the repo root.
+  python repro/appendix_examples.py t2 <seasonal_ber_21.csv>      # osESD, 5.776 s example (Fig. 9 region)
+  python repro/appendix_examples.py t4 <seasonal_ber_21.csv>      # auto_osESD custom 128-combination grid (245.853 s example)
+  python repro/appendix_examples.py t3 <ARIMA3_lin_4.csv>         # auto_osESD default 2048-combination grid (3478.699 s example)
+Expected (paper):
+  t2: P=R=F1=1.0 on indices >= size+1; Anomalies == Real = [137,153,214,262,289,374,...,9992,9994]
+  t4: P=1.0, R=0.98989898989899 (=98/99), F1=0.9949238578680203; Anomalies start [137,153,214,262,289,374,...,9992,9994]
+  t3: P=1.0, R=0.9707317073170731 (=199/205), F1=0.9851485148514851; Anomalies start [97,99,200,279,300,340,...,9965,9971]"""
+import sys, time
 import numpy as np, pandas as pd
-
 sys.path.insert(0, "src")
 from osESD import osESD, auto_osESD
-from utils import scores_module
 
-def run_t2(path):
-    print(f"=== Running Appendix Example t2 (Single osESD Seasonal) on {os.path.basename(path)} ===")
-    df = pd.read_csv(path)
+AUTHOR = dict(use_author_lambda=True, rep_at="author")
+
+def prf(real, pred):
+    tp = int(((real == 1) & (pred == 1)).sum()); fp = int(((real == 0) & (pred == 1)).sum()); fn = int(((real == 1) & (pred == 0)).sum())
+    P = tp / (tp + fp) if tp + fp else 0.0; R = tp / (tp + fn) if tp + fn else 0.0
+    return P, R, (2 * P * R / (P + R) if P + R else 0.0), tp, fp, fn
+
+def show(tag, P, R, F, tp, fp, fn, sec, real_idx, pred_idx):
+    print(tag, "Precision=%r Recall=%r F1=%r  (TP=%d FP=%d FN=%d)  %.3fs" % (P, R, F, tp, fp, fn, sec))
+    print("  Real     :", list(map(int, real_idx[:8])), "...", list(map(int, real_idx[-3:])))
+    print("  Anomalies:", list(map(int, pred_idx[:8])), "...", list(map(int, pred_idx[-3:])))
+
+mode, path = sys.argv[1], sys.argv[2]
+df = pd.read_csv(path); N = len(df)
+if mode == "t2":
     size = 100
-    t1 = time.time()
-    anoms_2 = osESD(df, value_name='value', anomaly_name='anomaly',
-                    size=size, dwin=5, rwin=5, maxr=6, alpha=0.01,
-                    use_author_lambda=True, rep_at='author')
-    t2 = time.time()
-    
-    true_outlier = df['anomaly'][(size + 1):].astype(int)
-    pred_outlier = pd.Series(0, index=true_outlier.index)
-    valid_anoms = [idx for idx in anoms_2 if idx in pred_outlier.index]
-    pred_outlier.loc[valid_anoms] = 1
-    
-    values = scores_module.return_PRF_values(true_outlier, pred_outlier, t1, t2)
-    real_indices = true_outlier[true_outlier == 1].index.tolist()
-    pred_indices = sorted(valid_anoms)
-    
-    print(f"Precision : {values[2]}, Recall : {values[3]}, F1-score : {values[4]}, Time : {values[5]} sec")
-    print(f"Real ({len(real_indices)}) : {real_indices[:7]} ... {real_indices[-5:]}")
-    print(f"Anomalies ({len(pred_indices)}) : {pred_indices[:7]} ... {pred_indices[-5:]}")
-    print(f"Anomalies == Real : {pred_indices == real_indices}")
-    return values
-
-def run_t4(path):
-    print(f"=== Running Appendix Example t4 (128-comb Custom Grid) on {os.path.basename(path)} ===")
-    df = pd.read_csv(path)
-    t1 = time.time()
-    auto_anoms_2 = auto_osESD(df,
-                              sizes=[50, 200],
-                              conditions=[True, False],
-                              alphas=[0.001, 0.05],
-                              dwins=[2, 30],
-                              rwins=[4, 30],
-                              weights=[0, 0, 1, 0],
-                              learning_length=0.2,
-                              legacy_cap=True,
-                              use_author_lambda=True,
-                              rep_at='author')
-    t2 = time.time()
-    
-    true_outlier = df['anomaly'].astype(int)
-    pred_outlier = pd.Series([1 if i in auto_anoms_2 else 0 for i in range(len(df))], index=df.index)
-    values = scores_module.return_PRF_values(true_outlier, pred_outlier, t1, t2)
-    
-    real_indices = true_outlier[true_outlier == 1].index.tolist()
-    pred_indices = sorted(auto_anoms_2)
-    
-    tp = int(((true_outlier == 1) & (pred_outlier == 1)).sum())
-    fp = int(((true_outlier == 0) & (pred_outlier == 1)).sum())
-    fn = int(((true_outlier == 1) & (pred_outlier == 0)).sum())
-    
-    print(f"Precision : {values[2]}, Recall : {values[3]}, F1-score : {values[4]}, Time : {values[5]} sec")
-    print(f"Counts : TP={tp}, FP={fp}, FN={fn}, Real={len(real_indices)} -> Recall = {tp}/{len(real_indices)}")
-    print(f"Real ({len(real_indices)}) : {real_indices[:7]} ... {real_indices[-5:]}")
-    print(f"Anomalies ({len(pred_indices)}) : {pred_indices[:7]} ... {pred_indices[-5:]}")
-    if real_indices != pred_indices:
-        diff_missing = [x for x in real_indices if x not in pred_indices]
-        diff_extra = [x for x in pred_indices if x not in real_indices]
-        print(f"Missing from Real: {diff_missing[:10]}")
-        print(f"Extra FP: {diff_extra[:10]}")
-    return values
-
-def run_t3(path):
-    print(f"=== Running Appendix Example t3 (2048-comb Default Grid) on {os.path.basename(path)} ===")
-    df = pd.read_csv(path)
-    t1 = time.time()
-    auto_anoms_1 = auto_osESD(df,
-                              weights=[0, 0, 1, 0],
-                              learning_length=0.2,
-                              legacy_cap=True,
-                              use_author_lambda=True,
-                              rep_at='author')
-    t2 = time.time()
-    
-    true_outlier = df['anomaly'].astype(int)
-    pred_outlier = pd.Series([1 if i in auto_anoms_1 else 0 for i in range(len(df))], index=df.index)
-    values = scores_module.return_PRF_values(true_outlier, pred_outlier, t1, t2)
-    
-    real_indices = true_outlier[true_outlier == 1].index.tolist()
-    pred_indices = sorted(auto_anoms_1)
-    
-    tp = int(((true_outlier == 1) & (pred_outlier == 1)).sum())
-    fp = int(((true_outlier == 0) & (pred_outlier == 1)).sum())
-    fn = int(((true_outlier == 1) & (pred_outlier == 0)).sum())
-    
-    print(f"Precision : {values[2]}, Recall : {values[3]}, F1-score : {values[4]}, Time : {values[5]} sec")
-    print(f"Counts : TP={tp}, FP={fp}, FN={fn}, Real={len(real_indices)} -> Recall = {tp}/{len(real_indices)}")
-    print(f"Real ({len(real_indices)}) : {real_indices[:7]} ... {real_indices[-5:]}")
-    print(f"Anomalies ({len(pred_indices)}) : {pred_indices[:7]} ... {pred_indices[-5:]}")
-    if real_indices != pred_indices:
-        diff_missing = [x for x in real_indices if x not in pred_indices]
-        diff_extra = [x for x in pred_indices if x not in real_indices]
-        print(f"Missing from Real: {diff_missing[:10]}")
-        print(f"Extra FP: {diff_extra[:10]}")
-    return values
-
-if __name__ == "__main__":
-    mode = sys.argv[1].lower()
-    path = sys.argv[2]
-    
-    if mode == "t2":
-        run_t2(path)
-    elif mode == "t4":
-        run_t4(path)
-    elif mode == "t3":
-        run_t3(path)
+    t0 = time.time()
+    anoms = osESD(df, value_name="value", anomaly_name="anomaly", size=size, dwin=5, rwin=5, maxr=6, alpha=0.01, **AUTHOR)
+    sec = time.time() - t0
+    real = df["anomaly"].astype(int).to_numpy(); pred = np.zeros(N, int); pred[list(anoms)] = 1
+    s = size + 1                                     # the paper scores only df['anomaly'][(size+1):]
+    P, R, F, tp, fp, fn = prf(real[s:], pred[s:])
+    show("t2", P, R, F, tp, fp, fn, sec, np.where(real == 1)[0], np.array(sorted(anoms)))
+    print("  Anomalies == Real (index >= size+1):", sorted(i for i in anoms if i >= s) == list(np.where(real[s:] == 1)[0] + s))
+elif mode in ("t3", "t4"):
+    t0 = time.time()
+    if mode == "t4":
+        idx = auto_osESD(df, sizes=[50, 200], conditions=[True, False], alphas=[0.001, 0.05], dwins=[2, 30], rwins=[4, 30],
+                         weights=[0, 0, 1, 0], learning_length=0.2, legacy_cap=True, **AUTHOR)
     else:
-        print(f"Unknown mode: {mode}. Choose from t2, t4, t3.")
+        idx = auto_osESD(df, legacy_cap=True, **AUTHOR)
+    sec = time.time() - t0
+    real = df["anomaly"].astype(int).to_numpy(); pred = np.zeros(N, int); pred[list(idx)] = 1
+    P, R, F, tp, fp, fn = prf(real, pred)            # the paper scores the whole series for auto_osESD
+    show(mode, P, R, F, tp, fp, fn, sec, np.where(real == 1)[0], np.array(sorted(idx)))
+    print("  expected recall: %r" % ((98 / 99) if mode == "t4" else (199 / 205)))
