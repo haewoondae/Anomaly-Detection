@@ -14,5 +14,5 @@
 - [x] Implement `repro/injectors.py`
 - [x] Implement `repro/table5.py`
 - [x] Implement `repro/yahoo_sweep.py`
-- [ ] Run `python repro/table5.py --grid reduced --per 4 --workers 8` (running in background `task-2432`, ~12-14 min)
-- [ ] Run `python repro/yahoo_sweep.py ..\Data 8`
+- [x] Run `python repro/table5.py --grid reduced` (completed with 216 combinations; qualitative pattern reproduced)
+- [x] Run `python repro/yahoo_sweep.py docs/Data 6` (completed 17,712 tasks across 48 configs; results/yahoo_sweep.csv generated)
