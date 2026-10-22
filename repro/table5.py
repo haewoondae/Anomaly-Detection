@@ -4,6 +4,10 @@ TRUE labels over the whole series.
 Usage: python repro/table5.py [--grid reduced|full] [--workers 8] [--per 4] [--eps 10] [--length 10] [--seed 0]
 Targets (files must exist under gen_out/): ARIMA1_ber_*, ARIMA1_lin_*, statespace_eps<EPS>_ber_*, statespace_eps<EPS>_lin_*"""
 import sys, os
+if hasattr(sys.stdout, "reconfigure"):
+    sys.stdout.reconfigure(encoding="utf-8")
+if hasattr(sys.stderr, "reconfigure"):
+    sys.stderr.reconfigure(encoding="utf-8")
 os.environ["OMP_NUM_THREADS"] = "1"
 os.environ["MKL_NUM_THREADS"] = "1"
 os.environ["OPENBLAS_NUM_THREADS"] = "1"
@@ -71,4 +75,4 @@ if __name__ == "__main__":
             r = [x[3:6] for x in res if x[0] == tgt and x[1] == s]
             if not r: continue
             m = np.mean(r, axis=0); sd = np.std(r, axis=0, ddof=1) if len(r) > 1 else np.zeros(3); p = PAPER[(tgt, s)]
-            print("%-24s %-6s %2d  P=%.3f±%.3f R=%.3f±%.3f F1=%.3f±%.3f || %.3f %.3f %.3f" % (tgt, s, len(r), m[0], sd[0], m[1], sd[1], m[2], sd[2], *p))
+            print("%-24s %-6s %2d  P=%.3f+/-%.3f R=%.3f+/-%.3f F1=%.3f+/-%.3f || %.3f %.3f %.3f" % (tgt, s, len(r), m[0], sd[0], m[1], sd[1], m[2], sd[2], *p))
