@@ -70,5 +70,5 @@ if __name__ == "__main__":
         for s in (own, "drift", "block"):
             r = [x[3:6] for x in res if x[0] == tgt and x[1] == s]
             if not r: continue
-            m = np.mean(r, axis=0); p = PAPER[(tgt, s)]
-            print("%-24s %-6s %2d  %.3f %.3f %.3f || %.3f %.3f %.3f" % (tgt, s, len(r), *m, *p))
+            m = np.mean(r, axis=0); sd = np.std(r, axis=0, ddof=1) if len(r) > 1 else np.zeros(3); p = PAPER[(tgt, s)]
+            print("%-24s %-6s %2d  P=%.3f±%.3f R=%.3f±%.3f F1=%.3f±%.3f || %.3f %.3f %.3f" % (tgt, s, len(r), m[0], sd[0], m[1], sd[1], m[2], sd[2], *p))
