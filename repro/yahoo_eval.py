@@ -6,8 +6,9 @@ Files without any labeled anomaly are excluded from the P/R/F1 means (counted se
 import sys, os, glob, time
 from multiprocessing import Pool
 import numpy as np, pandas as pd
-sys.path.insert(0, "src")
+sys.path.insert(0, "src"); sys.path.insert(0, "repro")
 from osESD import osESD
+from progress import run_pool
 
 GROUPS = ["A1Benchmark", "A2Benchmark", "A3Benchmark", "A4Benchmark"]
 
@@ -49,7 +50,7 @@ if __name__ == "__main__":
     files = [(f, cfg) for g in GROUPS for f in sorted(glob.glob(os.path.join(root, g, "*.csv")))]
     print("files:", len(files), "cfg:", cfgs)
     with Pool(workers) as pool:
-        res = pool.map(one, files)
+        res = run_pool(pool, one, files, "yahoo_eval", chunksize=4)
     errs = [(g, n, s) for g, n, s, _ in res if s.startswith("error")]
     for e in errs[:10]: print("ERROR", e)
     print("group  files(used/total) noanom zeropred | ONLINE R P F1 TypeI | FULL R P F1 | sec")

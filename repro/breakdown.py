@@ -1,10 +1,10 @@
 import sys, os, glob, time, re
 import numpy as np
 import pandas as pd
-from concurrent.futures import ProcessPoolExecutor
-
-sys.path.insert(0, "src")
+from multiprocessing import Pool
+sys.path.insert(0, "src"); sys.path.insert(0, "repro")
 from osESD import osESD
+from progress import run_pool
 
 def parse_params(param_str):
     parts = [p.strip() for p in param_str.split(",")]
@@ -114,8 +114,8 @@ def main():
     max_workers = min(os.cpu_count() or 4, 8)
     
     t_start = time.time()
-    with ProcessPoolExecutor(max_workers=max_workers) as executor:
-        results = list(executor.map(evaluate_file, tasks))
+    with Pool(max_workers) as pool:
+        results = run_pool(pool, evaluate_file, tasks, "breakdown", chunksize=2)
     wall_elapsed = time.time() - t_start
     
     # Global metrics

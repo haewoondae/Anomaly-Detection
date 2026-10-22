@@ -7,6 +7,7 @@ from multiprocessing import Pool
 import numpy as np
 sys.path.insert(0, "src"); sys.path.insert(0, "repro")
 from yahoo_eval import one, GROUPS
+from progress import run_pool
 
 CFGS = [(50, dw, rw, mr, al, c) for c in (1, 0) for mr in (3, 10) for dw in (2, 5) for rw in (4, 10) for al in (0.001, 0.01, 0.05)]
 
@@ -21,7 +22,7 @@ if __name__ == "__main__":
     print("configs:", len(CFGS), "files:", len(files), "tasks:", len(tasks))
     agg = collections.defaultdict(list)
     with Pool(workers) as pool:
-        for cfg, (g, name, status, r) in pool.imap_unordered(work, tasks, chunksize=16):
+        for cfg, (g, name, status, r) in run_pool(pool, work, tasks, "yahoo_sweep", chunksize=16):
             if status == "ok" and r["n_real"] > 0:
                 agg[(cfg, g)].append(r["on"])                # (R, P, F1, TypeI) on the online range
     os.makedirs("results", exist_ok=True)

@@ -3,12 +3,17 @@ For every target group the tuner is run with (own strategy, drift, block); the c
 TRUE labels over the whole series.
 Usage: python repro/table5.py [--grid reduced|full] [--workers 8] [--per 4] [--eps 10] [--length 10] [--seed 0]
 Targets (files must exist under gen_out/): ARIMA1_ber_*, ARIMA1_lin_*, statespace_eps<EPS>_ber_*, statespace_eps<EPS>_lin_*"""
-import sys, os, glob, argparse, time
+import sys, os
+os.environ["OMP_NUM_THREADS"] = "1"
+os.environ["MKL_NUM_THREADS"] = "1"
+os.environ["OPENBLAS_NUM_THREADS"] = "1"
+import glob, argparse, time
 from multiprocessing import Pool
 import numpy as np, pandas as pd
 sys.path.insert(0, "src"); sys.path.insert(0, "repro")
 from osESD import auto_osESD
 from injectors import make_injector
+from progress import run_pool
 
 GRIDS = {
     "reduced": dict(sizes=[50, 100], conditions=[True, False], maxrs=[3, 5, 10], dwins=[2, 5, 10], rwins=[4, 5, 10], alphas=[0.005, 0.05]),
@@ -59,7 +64,7 @@ if __name__ == "__main__":
                 jobs.append((tgt, f, s, a.grid, a.length, a.seed))
     print("jobs:", len(jobs), "grid:", a.grid)
     with Pool(a.workers) as pool:
-        res = pool.map(task, jobs)
+        res = run_pool(pool, task, jobs, "table5")
     print("target | strategy | files | P R F1 (mean) || paper P R F1")
     for tgt, (pat, own) in T.items():
         for s in (own, "drift", "block"):

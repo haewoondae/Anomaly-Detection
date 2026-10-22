@@ -1,6 +1,7 @@
 
 from sys import maxsize as M
 import time as t
+import os
 
 from . import osESD_Test
 from . import osESD_Transform
@@ -123,6 +124,7 @@ def osESD_Detector_auto(
         Total_length *= len(parameters[mult][1])
 
     param_idx=0
+    _t0 = t.time(); _last = _t0
     print("Process : [ {} / {} ]".format(1, Total_length))
     for win_size in parameters[0][1]:
         for andor in parameters[1][1]:
@@ -131,6 +133,11 @@ def osESD_Detector_auto(
                     for rwin in parameters[4][1]:
                         for alpha in parameters[5][1]:
                             param_idx+=1
+                            if t.time() - _last >= 600:
+                                el = t.time() - _t0; eta = el / param_idx * (Total_length - param_idx)
+                                print("[tuning pid=%d] %d/%d (%.0f%%) elapsed %.1f min ETA %.1f min best=%s score=%.4f"
+                                      % (os.getpid(), param_idx, Total_length, 100.0 * param_idx / Total_length, el / 60, eta / 60, Max_Pars1, Max_Score1), flush=True)
+                                _last = t.time()
                             if (param_idx)%(Total_length//4)==0:
                                 print("Process : [ {} / {} ]".format(param_idx,Total_length))
 

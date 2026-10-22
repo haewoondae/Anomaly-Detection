@@ -9,9 +9,10 @@ Interpretation choices (paper does not specify further):
 import sys, glob, os, time
 from multiprocessing import Pool
 import numpy as np, pandas as pd
-sys.path.insert(0, "src")
+sys.path.insert(0, "src"); sys.path.insert(0, "repro")
 from models import osESD_Test, osESD_Transform
 from models.osESD_Test import SESD, get_lambda, get_lambda_author
+from progress import run_pool
 
 
 class GESDWindow:
@@ -82,7 +83,7 @@ if __name__ == "__main__":
     cfg = [float(x) for x in cfgs.split(",")]
     files = sorted(glob.glob(os.path.join(d, pat)))
     with Pool(workers) as pool:
-        out = pool.map(one, [(f, cfg, rep_at) for f in files])
+        out = run_pool(pool, one, [(f, cfg, rep_at) for f in files], "ablation", chunksize=2)
     print("variant  files   P      R      F1     TypeI   time(s)")
     for v in VARIANTS:
         m = np.mean([o[v] for o in out], axis=0)
