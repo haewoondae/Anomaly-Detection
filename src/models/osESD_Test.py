@@ -1,8 +1,15 @@
-
+import functools, os
 import numpy as np
 import scipy.stats as stats
 
 
+def _cached(f):
+    if os.environ.get("OSESD_NO_LAMBDA_CACHE") == "1":
+        return f
+    return functools.lru_cache(maxsize=None)(f)
+
+
+@_cached
 def get_lambda(alpha, size):
     """Critical value lambda_m of Eq. (2).
 
@@ -22,6 +29,7 @@ def get_lambda(alpha, size):
     return (size - 1) * t / np.sqrt((size - 2 + t * t) * size)
 
 
+@_cached
 def get_lambda_author(alpha, size):
     """Author's original lambda formula (size + t² denominator) kept for A/B."""
     if size < 4:
