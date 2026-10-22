@@ -51,3 +51,7 @@ github_push_progress.md
 
 gen_out/
 
+# Benchmark Datasets
+Data/
+docs/Data/
+**/Data/
