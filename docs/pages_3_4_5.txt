@@ -1,0 +1,226 @@
+=== PAGE 4 ===
+1 3
+  713  Page 4 of 31
+Cluster Computing          (2026) 29:713 
+vector and residual trend vector. The change-rate vector tar-
+gets short-term patterns and the residual trend targets mid-
+term patterns. These components are incorporated into our 
+method to facilitate the identification of anomalies within 
+data exhibiting diverse patterns or trends, which is usually 
+challenging to discern using conventional parametric mod -
+els. Using Xi|k1  for window length k1, we denote the initial 
+change-rate trend vector as c1 =( c1, ..., cN −k1+1) with
+ci = xi+k1−1 − xiti+k1−1 − ti ,i =1 , 2, ..., N − k1 +1 , (3)
+where xi is the observed value at time i. This change-rate 
+vector ci for Xi|k1  represents the average change between 
+k1 leaps in X , with the difference of time in the denominator 
+and difference of observation values in the numerator.
+In addition to this change-rate vector, using Xi|k2  for 
+window length k2, we utilize the initial residual trend vector 
+r1 =( r1, ..., rN −k2+1) where ri = xi+k2−1 − ˆxi+k2−1 for 
+i ∈{ 1, ··· ,N − k2 +1 } as well and ˆxi+k2−1 is the pre -
+dicted value at time point ti+k2−1 using regression within each 
+window Xi|k2 . Specifically, for ¯xi|k2 = ∑k2j=1 xi+j−1/k2, 
+¯ti|k2 = ∑k2j=1 ti+j−1/k2, we obtain
+ˆxi =¯xi +( ti+k2−1 − ¯ti|k2 ) cov (ti|k2 , Xi|k2 )cov (ti|k2 , ti|k2 ) , (4)
+where cov (x, y)= ∑j (xj − ¯x)(yj − ¯y) is a covariance 
+between the two vectors, x and y. The residual trend vec -
+tor describes the degree of change within k2 leaps in X , 
+interpreted as a within- k2 trend vector. Thus, the change-
+rate trend vector window size is k1 and residual trend vector 
+window size is k2. We notice that hyperparameters k1 and 
+k2 depend on the domain problem and we will propose an 
+automated way to set them.
+Then, we perform the sequential ESD (sESD) test inter -
+nally with the above values according to the following 
+procedures. For m ≥ 1, we find the index J(m)c1  being the 
+maximum among the standardized values in c1, setting the 
+maximum as R(m)c1 ,
+J(m)c1 = arg maxi
+{ |ci − ¯c1|
+sc1
+}
+,R (m)c1 = maxi
+{ |ci − ¯c1|
+sc1
+}
+, (5)
+where ¯c1 and sc1  are the sample average and the sample 
+standard deviation of c1, respectively. In other words, R(m)c1  
+is the maximum R statistic value in the current transformed 
+change-rate vector c1 and its index is J(m)c1 . If R(m)c1  exceeds 
+critical value λm, then we regard observation xJ(m)c1  at time 
+J(m)c1  as an anomaly. We continue this process until either 
+Rm ≤ λm or m reaches the upper bound r. We do the same 
+with residual rate trend vector r1 as above, similarly obtain-
+ing the index J(m)r1  and the maximum R(m)r1 :
+J(m)r1 = arg maxi
+{ |ri − ¯r1|
+sr1
+}
+,R (m)r1 = maxi
+{ |ri − ¯r1|
+sr1
+}
+. (6)
+Given the two trend vectors, c1 and r1, a detection strategy 
+is either a conservative detection by deciding an anomaly 
+if detected in both the vectors or a generous one if detected 
+in one of the two vectors, which brings a parameter ‘choice 
+condition’ in the follow-up tuning stage. If deemed an 
+anomaly, we replace it with the predicted value ˆxN  at posi-
+tion tN  using linear regression.
+As a new online observation xN +1 arrives, the algo -
+rithm computes the newest elements cN −k1+2 and rN −k2+2
+. The trend vectors are updated incrementally by discard -
+ing the oldest elements, yielding c2 =( c2,...,c N −k1+2) 
+and r2 =( r2,...,r N −k2+2). With these updated vectors, 
+the sample statistics are recalculated in O(1) time, and the 
+sESD test described above is repeated to determine whether 
+xN +1 is an anomaly. This sequential detecting and replac -
+ing process continues as new data stream in, leading to 
+faster execution time compared to the original GESD tests.
+In summary, the operational process of our implementa -
+tion is depicted in Fig. 1. The framework consists of two 
+main steps: an offline initialization step and an online detec-
+tion and learning step.
+3.3 Statistical interpretation
+We provide the statistical interpretation of the two trend vec-
+tors. We assume that the observations ti ≤ T  are normally 
+distributed by a locally linear trend and the linear trend for 
+ti >T  changes as follows:
+xi ∼ N (β0 + β1ti,σ 2),t i ≤ T,
+xi ∼ N (β′0 + β′1ti,σ 2),t i > T,
+where β0 ̸= β′0 and β1 ̸= β′1. That is to say, T +1  is a time 
+point of distribution change.
+For change-rate trend vector c, let us assume time 
+stampes are equally spaced with tj = j for the sake of 
+simplicity. Then, change rates follow normal distribu -
+tion with ci ∼ N (β1, 2σ2/(k1 − 1)2) if i ≤ T − k1 +1 , 
+which means sliding window Xi|k1  is within times before 
+the distribution change. Furthermore, the distribution of 
+cT −k1+2 shifts to cT −k1+2 ∼ N ([(β′0 − β0)+β ′1(T + 1) 
+−β1(T − k1 + 2)]/(k1 − 1), 2σ2/(k1 − 1)2).Thus, the 
+GESD with the change-rate trend c finds a locally linear 
+change, mainly slope change for sufficiently large k1, in 
+dataset X .
+=== PAGE 5 ===
+1 3
+Page 5 of 31   713 
+Cluster Computing          (2026) 29:713 
+For residual trend vector r, we prove that residual trends 
+are normally distributed with expectations varying accord -
+ing to local linearity changes. We construct data input 
+matrix X0 =[ 1k2 tT −k2+1|k2 ] of size k2 × 2 for times 
+tT −k2+1|k2 , where 1ℓ is an ℓ × 1 vector of which elements 
+are all ones. Then, for ˆβ0 =( XT0 X0)−1XT0 XT −k2+1|k2 , 
+the residual rT −k2+1 becomes rT −k2+1 = xT − [1 tT ]ˆβ0. 
+Using E[ ˆβ0]=[ β0 β1]T  and Cov [ ˆβ0]=( XT0 X0)−1σ2, 
+the distribution is
+rT −k2+1 ∼ N
+(
+0, (1 − [1 tT ](XT0 X0)−1[1 tT ]T )σ2) . (7)
+Next, for residual rT −k2+2 including xT +1 of which the dis-
+tribution changed from that of xT , we express XT −k2+2|k2  
+Fig. 1 Architecture of sequential ESD
+ 
+=== PAGE 6 ===
+1 3
+  713  Page 6 of 31
+Cluster Computing          (2026) 29:713 
+and tT −k2+2|k2  by XT −k2+2|k2 =[ X TT −k2+2|k2−1 xT +1]T  
+and tT −k2+2|k =[ tTT −k2+2|k−1 tT +1]T , respectively. In a 
+similar fashion, we express the data input matrix X1 as
+X1 =
+[
+X11
+X12
+]
+,
+X11 =[ 1k2−1 tT −k2+2|k2−1],X 12 = [1 tT +1].
+Notice that X11 is of size (k2 − 1) × 2 and X12 of 1 × 2
+, which brings the size of X1 to be k2 × 2. Then, by apply-
+ing the Woodbury formula to (XT1 X1)−1 with X11 and X12 
+in ˆβ1 =( XT1 X1)−1XT1 XT −k2+2|k2 , we obtain the residual 
+rT −k2+2 as follows:
+rT −k2+2 = xT +1 − XT12 ˆβ′111+ X12(XT11X11)−1XT12 ,
+where ˆβ′11 =( XT11X11)−1XT11XT −k2+2|k2−1. Thus, its dis-
+tribution is
+rT −k2+2 ∼ N
+( (β0 − β′0)+t T +1(β1 − β′1)
+1+X 12(XT11X11)−1XT12 ,
+σ2
+(1 + X12(XT11X11)−1XT12)
+)
+.
+ (8)
+Comparing the distribution of rT −k2+1 in ( 7) and that of 
+rT −k2+2 in ( 8), we observe that the expectation changes 
+by both the slope and the intercept at the local distribution 
+change at T which will be It means that residual trend ri cap-
+tures the difference of both intercept and slope in the model, 
+and the expectation changes are captured in the GESD test.
+3.4 Computation
+We also made quicker calculations possible by using an 
+online updating algorithm. This made calculating the resid-
+ual parameters take a time complexity of O(1) instead of the 
+usual O(N ). As explained in Section 3.2, we first transform 
+the offline initialization data to a change-rate trend vector 
+c and residual trend vector r, and then test it online using 
+sequential ESD. During the transformation for the within-k2 
+trend vector, we need to compute linear-regression 
+parameters which would normally take a time complex -
+ity of O(N ). However, since the residuals are calculated 
+sequentially one by one and only one value changes from 
+the previous vector that we calculated the parameters with, 
+we use an online updating algorithm for faster calculation.
+For that purpose, when feeding new xi+k2  into Xi|k2  and 
+making Xi+1|k2 , we calculate new values from the previous 
+values in a constant time complexity O(1) as follows:
+¯ti+1|k2 ← ¯ti|k2 + ti+k2 − tik2 ,
+¯xi+1|k2 ← ¯xi|k2 + xi+k2 − xik2  (9)
+cov (ti+1|k2 , ti+1|k2 ) ← cov (ti|k2 , ti|k2 )
++ (ti+k2 − ¯ti+1|k2 )2 − (ti − ¯ti|k2 )2
+k2
+,
+ (10)
+cov (ti+1|k2 , Xi+1|k2 ) ← cov (ti|k2 , Xi|k2 )
++ (ti+k2 − ¯ti+1|k2 )(xi+k2 − ¯xi+1|k2 ) − (ti − ¯ti|k2 )(xi − ¯xi|k2 )k2 . (11)
+The above calculations in addition to ( 4) accelerate 
+the update of residual ri+1 from ri in an online manner. 
+Then, using updated residual trend vector r2, for example 
+r2 =( r2,...,r N −k2+2), we update the ESD statistics, J(m)r2  
+and R(m)r2  as in (6), with constant time complexity O(1).
+The time complexity per step involves trend vector 
+updates and sequential detection. Both trend vectors are 
+updated in O(1) time. Specifically, the change-rate involves 
+a simple slope calculation in ( 3), and residual parameters 
+follow the update rules in (9)–(11). Following these updates, 
+the search for the maximum R statistic within a window of 
+size N requires O(N ) operations. Since this search repeats 
+up to r times, the formal per-step complexity is O(r · N ).
+Because N and r are fixed parameters independent of the 
+stream length T, the algorithm scales linearly with data vol-
+ume, leading to an overall time complexity of O(T · r · N )
+. Regarding memory, the algorithm only maintains the cur -
+rent sliding windows and associated vectors, which keeps 
+the space complexity at O(N ).
+3.5 Automated parameter tuning
+The performance of the proposed osESD implementation 
+heavily relies on setting the parameters. The parameters that 
+require tuning are shown in Table 1.
+In fact, users often adopt a grid search that is a basic 
+parameter-tuning strategy for their domain-specific prob -
+lems and datasets. We relieve this burden by providing 
+auto_osESD, written in both Python and R, that auto -
+mates parameter-tuning. Using a fixed amount of label 
+Table 1 Parameters for osESD
+Parameter Meaning
+Window size Size of the window used in offline initial-
+ization and online learning steps
+Choice condition Choice function when determining 
+anomalies with both vectors
+maxr Max number of anomalies in each window
+dwin Size of change-rate trend vector
+rwin Size of within-k2 trend vector
+Alpha Alpha value of hypothesis test

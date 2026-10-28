@@ -1,0 +1,5 @@
+family | model | files | R P F1 TypeI | sec | flagged/true (=R/P)
+ARIMA1       rrcf          16 0.273 0.056 0.088 0.0955 424.87 4.90
+ARIMA1       rrcf@oracle   16 0.065 0.065 0.065 0.0190 424.87 1.00
+ARIMA2       rrcf           8 0.350 0.057 0.096 0.1270 421.40 6.10
+ARIMA2       rrcf@oracle    8 0.066 0.066 0.066 0.0202 421.40 1.00

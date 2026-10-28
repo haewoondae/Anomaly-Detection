@@ -1,0 +1,32 @@
+# Table 2 Comparison Baseline v2 Progress
+
+- [x] 1. `repro/baselines.py` 수정: `topk_pred`, `return_scores=True`, IF 및 DL 인자(`if_feat`, `if_fit`, `dl_feat`, `dl_fit`) 추가
+- [x] 2. `repro/run_baselines.py` 교체: v2 하네스 작성
+- [x] 3. 실행 1: IF `--thr both` (ARIMA, State-space, Yahoo) 완료
+- [x] 4. 실행 2: IF 4종 특징 탐색 (win, raw, rawdiff, diff) 및 거리/상관 분석 완료
+- [x] 5. 실행 3: RRCF limit 24 (ARIMA 6워커, `--thr both`) 완료
+- [x] 6. `docs/REPRODUCTION.md` 문서 정정 (IF 4종 거리 표, 2대 한계 유의사항, 4모델 가중 Total 표, DL 한정 규칙 반영)
+- [x] 7. 실행 4: 딥러닝 3종 사전 규칙 평가 (ARIMA 96개, GPU, `diff` 및 `center`, `dl-fit all`)
+  - [x] diff 완료: AE 0.044, VAE 0.044, LSTM-ED 0.032 (가설 미달)
+  - [x] center 완료: AE 0.057, VAE 0.055, LSTM-ED 0.063 (가설 미달)
+- [x] 8. 점수 위치 오류 수정 및 딥러닝 3종 재평가 1회 (`win`, `diff`, `center`, ARIMA 96개)
+  - [x] `baselines.py` 점수 부여 로직 수정 완료 (윈도우 마지막점 부여 -> 윈도우 덮는 위치별 제곱오차 평균)
+  - [x] win(32점 윈도우) oracle-k 완료: AE F1 0.947, VAE F1 0.931, LSTM-ED F1 0.860
+  - [x] diff(차분 윈도우) oracle-k 완료: AE F1 0.474, VAE F1 0.494, LSTM-ED F1 0.517
+  - [x] center(평균제거 윈도우) oracle-k 완료: AE F1 0.915, VAE F1 0.933, LSTM-ED F1 0.882
+  - [x] 판정: 논문 수치(0.17~0.63)를 대폭 상회. "논문 AE/VAE는 본 실험보다 약한 구성, 재현 불가"로 종결
+  - [x] win thr=both 산출 완료: train 배포규칙(AE 0.896, VAE 0.880, LSTM 0.851, R/P 0.99~1.19)
+- [x] 9. RRCF 48개 재평가 (ARIMA, `cover_mean` 적용, 4워커)
+  - [x] 완료: train 배포규칙 F1 0.106 (R/P 6.38) 대 oracle-k F1 0.088 (R/P 1.00)
+  - [x] REPRODUCTION.md Section 2.11 갱신 완료
+- [x] 10. Table 3 Yahoo ablation 행 (sosESD, oGESD, norep, 1워커)
+  - [x] 완료: A1(0.372/0.336/0.367/0.281), A2(0.871/0.677/0.870/0.495), A3(0.665/0.177/0.629/0.547), A4(0.613/0.141/0.574/0.531)
+  - [x] 6개 그룹 가중 Total F1: osESD 0.726(1위) > oGESD 0.712 > norep 0.538 > sos 0.535
+  - [x] REPRODUCTION.md Section 1 및 Section 2.12 등재 완료
+- [x] 11. Table 4 State-space 4행 튜닝 완료 (sig100 F1 0.9554 [4/6, 5/6 일치], sig300 F1 0.9469 [0~3/6 일치])
+- [x] 12. 3.3절 통계 수식(몬테카를로 20만 회, 식 8 부호 규명) 및 3.4절 선형 복잡도 실측(28~33us) 완료
+- [x] 13. DL 공정 비교(`--dl-fit train`, 초기 20% 학습) ARIMA 96개 전수 완료:
+  - AE: 배포 F1 0.715 (R/P 1.80) / oracle-k F1 0.862
+  - VAE: 배포 F1 0.703 (R/P 2.10) / oracle-k F1 0.854
+  - LSTM-ED: 배포 F1 0.151 (R/P 10.21) / oracle-k F1 0.297
+- [x] 14. REPRODUCTION.md 4단계 재현 등급 체계 및 전 섹션 최종 정리 완료

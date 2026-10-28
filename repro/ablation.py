@@ -63,11 +63,18 @@ def prf(real, pred):
 
 VARIANTS = ("osesd", "sos", "ogesd", "norep")
 
-def one(args):
+def _one(args):
     path, cfg, rep_at = args
-    df = pd.read_csv(path); real = df["anomaly"].astype(int).to_numpy()
+    df = pd.read_csv(path)
+    if "value" not in df.columns:
+        return None
+    anom_col = "anomaly" if "anomaly" in df.columns else "is_anomaly"
+    if anom_col not in df.columns:
+        return None
+    real = df[anom_col].astype(int).to_numpy()
     data = df["value"].astype(float).tolist()
-    tm = df["timestamps"].tolist() if "timestamps" in df else list(range(1, len(df) + 1))
+    tm_col = next((c for c in ("timestamps", "timestamp") if c in df.columns), None)
+    tm = df[tm_col].tolist() if tm_col else list(range(1, len(df) + 1))
     res = {}
     for v in VARIANTS:
         t0 = time.time()
@@ -76,6 +83,12 @@ def one(args):
         res[v] = prf(real, pred) + (time.time() - t0,)
     return res
 
+def one(args):
+    try:
+        return _one(args)
+    except Exception:
+        return None
+
 if __name__ == "__main__":
     d, pat, cfgs = sys.argv[1], sys.argv[2], sys.argv[3]
     workers = int(sys.argv[4]) if len(sys.argv) > 4 else 8
@@ -83,7 +96,8 @@ if __name__ == "__main__":
     cfg = [float(x) for x in cfgs.split(",")]
     files = sorted(glob.glob(os.path.join(d, pat)))
     with Pool(workers) as pool:
-        out = run_pool(pool, one, [(f, cfg, rep_at) for f in files], "ablation", chunksize=2)
+        raw_out = run_pool(pool, one, [(f, cfg, rep_at) for f in files], "ablation", chunksize=2)
+    out = [o for o in raw_out if o is not None]
     print("variant  files   P      R      F1     TypeI   time(s)")
     for v in VARIANTS:
         m = np.mean([o[v] for o in out], axis=0)

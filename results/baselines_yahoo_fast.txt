@@ -1,0 +1,17 @@
+family | model | files | R P F1 TypeI | sec
+A1Benchmark  osesd    64 0.422 0.472 0.383 0.0065 0.26
+A1Benchmark  zscore   64 0.443 0.367 0.323 0.0124 0.00
+A1Benchmark  hwa      64 0.678 0.295 0.334 0.0481 0.43
+A1Benchmark  if       64 0.586 0.125 0.159 0.2382 0.38
+A2Benchmark  osesd   100 0.828 0.947 0.871 0.0001 0.08
+A2Benchmark  zscore  100 0.811 0.250 0.344 0.0106 0.00
+A2Benchmark  hwa     100 0.999 0.183 0.293 0.0267 0.15
+A2Benchmark  if      100 0.633 0.004 0.007 0.6206 0.21
+A3Benchmark  osesd   100 0.675 0.709 0.677 0.0018 0.10
+A3Benchmark  zscore  100 0.360 0.861 0.487 0.0001 0.00
+A3Benchmark  hwa     100 0.990 0.723 0.779 0.0060 0.24
+A3Benchmark  if      100 0.647 0.005 0.009 0.6359 0.22
+A4Benchmark  osesd   100 0.670 0.632 0.620 0.0026 0.10
+A4Benchmark  zscore  100 0.381 0.574 0.403 0.0020 0.00
+A4Benchmark  hwa     100 0.914 0.210 0.255 0.1911 0.30
+A4Benchmark  if      100 0.606 0.006 0.011 0.6044 0.22

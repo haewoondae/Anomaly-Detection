@@ -1,0 +1,13 @@
+jobs: 24 grid: reduced
+target | strategy | files | P R F1 (mean) || paper P R F1
+State-space (Bernoulli)  ber     4  P=0.922+/-0.043 R=0.931+/-0.049 F1=0.926+/-0.044 || 0.985 0.981 0.983
+State-space (Bernoulli)  drift   4  P=0.845+/-0.147 R=0.852+/-0.175 F1=0.848+/-0.158 || 0.893 0.966 0.928
+State-space (Bernoulli)  block   4  P=0.863+/-0.144 R=0.864+/-0.179 F1=0.863+/-0.161 || 0.986 0.995 0.990
+State-space (Linear)     lin     4  P=0.918+/-0.009 R=0.799+/-0.124 F1=0.850+/-0.077 || 1.000 0.804 0.892
+State-space (Linear)     drift   4  P=0.900+/-0.065 R=0.742+/-0.090 F1=0.809+/-0.056 || 0.923 0.857 0.889
+State-space (Linear)     block   4  P=0.923+/-0.040 R=0.795+/-0.118 F1=0.852+/-0.088 || 0.934 0.863 0.897
+Global MAE (|Delta F1| across 6 cells): 0.0717
+
+--- Paired F1 Differences (per-file) ---
+State-space (Bernoulli)  (n=4)  own-drift: +0.079+/-0.115  own-block: +0.063+/-0.117  drift-block: -0.016+/-0.014
+State-space (Linear)     (n=4)  own-drift: +0.041+/-0.042  own-block: -0.003+/-0.013  drift-block: -0.043+/-0.051

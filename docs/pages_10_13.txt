@@ -1,0 +1,184 @@
+=== PAGE 10 ===
+1 3
+  713  Page 10 of 31
+Cluster Computing          (2026) 29:713 
+4 Experiments
+In this section, we provide the experimental results of the 
+proposed model and performance comparisons with exist -
+ing methods using several datasets. We ran all tests with the 
+specifications described in Table 7.
+We used three types of datasets: ‘ARIMA’ datasets, 
+‘seasonal’ datasets, and ‘Yahoo! Benchmark’  [ 17] datas -
+ets. The first two were synthetically created, and the theory 
+and methods used in creating these datasets can be found in 
+Section 3. The Yahoo! datasets are divided into four parts: 
+‘A1Benchmark’, ‘A2Benchmark’, ‘A3Benchmark’ and 
+‘A4Benchmark’. ‘A1Benchmark’ datasets are real-traffic 
+datasets, and the remaining are synthetic datasets created by 
+Yahoo!. In short, 96 ‘ARIMA’ datasets, 100 ‘seasonal’ datas-
+ets, 67 ‘A1Benchmark’, 100 ‘A2Benchmark’, 100 ‘A3Ben-
+chmark’, and 100 ‘A4Benchmark’ were used in testing and 
+each respective score is displayed below. All datasets were 
+labeled. Figure 3 shows examples of the final datasets with 
+anomalies included. All codes related to synthetic dataset 
+creation and anomaly generation are in the data.R file. To 
+reproduce the test results, run run-tests.py in Python and 
+run-tests.R in R and test results should appear in each 
+test-results file respectively.
+We now present test scores. We show our test results 
+with various plots for reference. Since the anomaly detec -
+tion task is a binary classification problem, our main metrics 
+are recall, precision, F1-score and Type I error, as follows:
+Recall = (T rue P ositive)(T rue P ositive)+( F alse N egative) , (13)
+P recision = (T rue P ositive)(T rue P ositive)+( F alse P ositive) , (14)
+F 1 − Score =2 × P recision × RecallP recision + Recall , (15)
+T ype I Error = (F alse P ositive)(F alse P ositive)+( T rue N egative) , (16)
+where True Positive is the number of correctly classified 
+positive points, False Negative  is the number of wrongly 
+classified negative points, False Positive is the number of 
+wrongly classified positive points, and True Negative is the 
+number of correctly classified negative points. Recall is syn-
+onymous with statistical power in statistics. F1-score is the 
+harmonic mean of recall and precision, providing a single 
+value that considers the trade-off between these two values. 
+Type I error, also known as the false positive rate, represents 
+the proportion of normal points that are incorrectly identi -
+fied as anomalies. Since these four metrics are often used in 
+anomaly detection, we choose them as our main metrics. We 
+also include the execution times of the tested models.
+We organize the results of our tests: Section 4.1 shows 
+our proposed osESD against other models with the same 
+datasets, Section 4.2 shows the ablation test results of our 
+method, Section 4.3 shows the results of our expanded 
+auto-osESD method, and Sect. 4.4 shows the sensitivity 
+analysis for injection strategies.
+4.1 Comparison with other models
+To compare our suggested osESD model with other mod -
+els, we chose seven popular models ranging from statisti -
+cal methods and machine learning to deep learning. These 
+are the Sliding-window Z-score model (Z-Score), the 
+additive Holt-Winters model (HW-A) [ 9, 22], isolation 
+forest (IF) [ 15], the robust random cut forest (RRCF) [ 6], 
+Table 3 Test results of ablation tests
+Measure osESD oGESD sosESD norep_osESD
+(a) Total
+Recall 0.787 0.846 0.659 0.349
+Precision 0.857 0.431 0.447 0.830
+F1-score 0.795 0.528 0.490 0.473
+Time (sec) 0.410 0.583 0.125 0.489
+(b) A1Benchmark
+Recall 0.334 0.311 0.510 0.288
+Precision 0.546 0.176 0.467 0.505
+F1-score 0.357 0.186 0.403 0.309
+Time (sec) 0.111 0.127 0.026 0.131
+(c) A2Benchmark
+Recall 0.902 0.935 0.673 0.390
+Precision 0.929 0.520 0.611 0.836
+F1-score 0.905 0.620 0.624 0.512
+Time (sec) 0.232 0.311 0.061 0.236
+(d) A3Benchmark
+Recall 0.822 0.910 0.460 0.390
+Precision 0.892 0.604 0.077 0.898
+F1-score 0.847 0.707 0.126 0.537
+Time (sec) 0.139 0.180 0.029 0.153
+(e) A4Benchmark
+Recall 0.589 0.811 0.329 0.344
+Precision 0.858 0.614 0.107 0.866
+F1-score 0.656 0.676 0.141 0.480
+Time (sec) 0.139 0.160 0.031 0.161
+(f) ARIMA dataset
+Recall 0.968 0.968 0.964 0.258
+Precision 0.954 0.170 0.784 0.923
+F1-score 0.960 0.288 0.859 0.402
+Time (sec) 1.039 1.739 0.364 1.342
+(g) Seasonal state-space
+Recall 0.967 0.971 0.979 0.402
+Precision 0.863 0.405 0.654 0.850
+F1-score 0.907 0.571 0.772 0.539
+Time (sec) 0.835 1.046 0.246 0.933
+=== PAGE 13 ===
+1 3
+Page 13 of 31   713 
+Cluster Computing          (2026) 29:713 
+will be comparing our proposed osESD model with these 
+three other models.
+Table 3 shows the averaged performance measures for 
+the tests. Tests were run in both Python and R, and both 
+showed the exact same recall and precision results in all 
+datasets. Runtimes are from the R implementations. Results 
+can be reproduced by running run-ablation-tests.py in 
+Python or run-ablation-tests.R in R in the designated 
+directory, and results will appear in the "test-results/abla-
+tion-test" file. Identical parameters were used for all abla-
+tion models and osESD.
+Bold-faced numbers represent the best values for each 
+case. The top row ‘Total’ is the average value of all datasets 
+combined. Our osESD shows the best F1-scores compared 
+to the other three in most cases, supporting the value of our 
+contributions. In the two cases (b) and (d) when it was not the 
+best, its scores were only slightly worse than the top score. 
+In case (b) ‘A1Benchmark dataset’, sosESD showed slightly 
+higher F1-scores compared to our implementation. In cases 
+(c) and (d), our implementation showed the best scores and in 
+case (e), oGESD exhibited slightly higher F1-scores. In both 
+ARIMA datasets and seasonal state-space model datasets, 
+our implementation showed much better F1-scores than the 
+other methods. In addition, due to its online learning capa -
+bility, osESD shows faster learning in all cases compared to 
+oGESD. sosESD exhibited the fastest learning times across 
+all scenarios, which aligns with our expectations given its 
+streamlined architecture. However, it displayed significant 
+variation in F1-scores across different datasets.
+Finally, osESD consistently proved better than 
+norep_osESD, showing that our regression and replace -
+ment steps do indeed have benefits.
+Some results of the detected anomalies are presented in 
+Figs. 5 and 6. One can easily notice that our proposed osESD 
+implementation is the most accurate at finding anomalies.
+4.3 Automated osESD
+We also tested auto-osESD, a package for automatically 
+learning the osESD parameters by grid search. We used 
+the datasets described above, including two real-life unla -
+beled stock volume datasets. Both of these datasets are from 
+Yahoo! finance, and represent stock volumes of Apple [25] 
+and Tesla [26]. Apple stock prices were set as from January 
+1, 2001 to June 30, 2023 and Tesla from June 29, 2010 to 
+June 30, 2023. This makes a total of 5926 datapoints for 
+Apple and 3227 datapoints for Tesla. Figure 13 shows plots 
+of both datasets.
+Table 4 summarizes the performance results for the data-
+sets used along with the parameters shown in Table 1. Test 
+results can be reproduced by running run-auto-osESD.py 
+in Python and run-auto-osESD.R in R.
+Our codes used a total of eight synthetic datasets and 
+two real-life stock volume datasets. The Yahoo! benchmark 
+datasets were not used because they are too short for reli -
+able tuning. In addition, since both real-life stock volume 
+datasets were unlabeled, we did not include their scores in 
+Table 4. However, as mentioned in 3.5, pseudo y values 
+were generated in the tuning process and the best param -
+eters were found.
+The evaluation of the datasets revealed consistently 
+high F1-scores across all scenarios. Notably, several data -
+sets exhibited a recall score of 1, a particularly advanta -
+geous outcome for real-world industrial anomaly detection 
+Table 4 Test results of auto osESD results
+Dataset Windowsize precision Condition recall maxrF1-score dwin rwin Alpha
+ARIMA1_bernoulli1 50 And 3 2 5 0.05
+0.9756 0.9346 0.9547
+ARIMA1_uniform1 50 And 5 2 4 0.005
+0.8889 0.9789 0.9323
+ARIMA1_linear1 150 And 5 2 4 0.05
+0.8894 0.9663 0.9263
+ARIMA1_quadratic1 50 And 3 2 5 0.01
+0.9877 1 0.9938
+State-space_bernoulli1 50 And 3 5 4 0.01
+0.9381 1 0.9681
+State-space_uniform1 50 Or 3 10 30 0.01
+1 0.9279 0.9626
+State-space_linear1 50 And 3 2 10 0.001
+0.9741 0.9947 0.9843
+State-space_quadratic1 50 And 3 2 10 0.005
+0.898 1 0.9462
+APPL 118 Or 7 5 30 0.005
+TSLA 64 And 3 30 5 0.05
