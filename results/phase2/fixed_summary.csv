@@ -1,0 +1,4 @@
+channel,config_id,size_h,dwin_min,rwin_h,maxr,alpha,condition,detections,events,max_chain_points,online_days,events_per_online_day,seconds,detector_calls
+VEL,fixed,24,15,1,3,0.005,True,22,12,4,21.099988425925925,0.5687206911097349,4.531477600001381,2
+ACC,fixed,24,15,1,3,0.005,True,24,5,9,21.083402777777778,0.23715336906004922,4.726532000000589,2
+ENV3,fixed,24,15,1,3,0.005,True,15,3,10,21.1,0.14218009478672985,4.047670700005256,2

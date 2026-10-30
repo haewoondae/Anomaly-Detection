@@ -1,0 +1,4 @@
+channel,detections,events,max_chain_points,loo_detections,loo_events,loo_max_chain
+VEL,22,12,4,22,12,4
+ACC,24,5,9,24,5,9
+ENV3,15,3,10,15,3,10

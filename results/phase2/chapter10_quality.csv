@@ -1,0 +1,4 @@
+channel,rows,ts_sorted,duplicate_ts,null_values,nan_or_nonnumeric,infinite_values,bad_ts,zero_values,interval_median_s,interval_p95_s,interval_p99_s,interval_max_s,gaps_gt_2min,gaps_gt_1h,gaps_gt_1day,aggr_unit_columns_constant,historical_unit_or_aggr_changes
+VEL,33217,True,0,0,0,0,0,0,61.0,64.0,64.0,3723.0,2,1,0,True,unconfirmed; unit is current setpoint metadata; aggregation filtered by extraction
+ACC,33217,True,0,0,0,0,0,0,61.0,64.0,64.0,3785.0,2,1,0,True,unconfirmed; unit is current setpoint metadata; aggregation filtered by extraction
+ENV3,33215,True,0,0,0,0,0,0,61.0,64.0,64.0,3723.0,2,1,0,True,unconfirmed; unit is current setpoint metadata; aggregation filtered by extraction

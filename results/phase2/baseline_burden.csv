@@ -1,0 +1,4 @@
+channel,low_definition,low_detected_points,low_events,low_exposure_days,low_events_per_exposure_day,first_hour_after_init_detected_points,first_hour_after_gap,ground_truth
+VEL,bottom decile per run online segment,0,0,2.108773148148148,0.0,0,not evaluable; reinitialization blind period,unconfirmed normal operation
+ACC,bottom decile per run online segment,5,2,2.1113310185185186,0.9472697471206398,0,not evaluable; reinitialization blind period,unconfirmed normal operation
+ENV3,bottom decile per run online segment,5,2,2.11068287037037,0.9475606345585454,0,not evaluable; reinitialization blind period,unconfirmed normal operation

@@ -1,0 +1,9 @@
+{
+  "synthetic_nonnegative_and_finite_inputs": 360,
+  "input_hashes_unchanged": true,
+  "all_source_times_strictly_increasing": true,
+  "original_anomaly_column_absent": true,
+  "grid_unique_channel_configs": 288,
+  "core_detector_sources_unchanged": true,
+  "wrapper_tests_passed": 6
+}

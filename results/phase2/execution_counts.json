@@ -1,0 +1,26 @@
+{
+  "grid_settings_per_channel": 96,
+  "grid_channel_setting_runs": 288,
+  "grid_detector_calls": 576,
+  "synthetic_runs": 360,
+  "synthetic_seeds": [
+    0,
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9
+  ],
+  "fixed_channel_runs": 3,
+  "fixed_detector_calls": 6,
+  "benchmark_calls": 1,
+  "replacement_comparison_calls": 6,
+  "alarm_case_calls": 1,
+  "auto_osESD_calls": 0,
+  "synthetic_boundary_recheck_calls": 90,
+  "synthetic_actual_detector_executions": 450
+}

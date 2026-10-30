@@ -1,0 +1,32 @@
+{
+  "site": "site_C",
+  "equipment": "P-2",
+  "rows": 339,
+  "duplicates": 0,
+  "null": 0,
+  "infinite": 0,
+  "zeros": 0,
+  "interval_median_s": 600.0,
+  "interval_p95_s": 1799.0,
+  "interval_p99_s": 1801.0,
+  "interval_max_s": 2401.0,
+  "gaps_gt_2min": 338,
+  "gaps_gt_1h": 0,
+  "gaps_gt_1day": 0,
+  "parameters": {
+    "train_size": 144,
+    "dwins": 2,
+    "rwins": 6,
+    "maxr": 3,
+    "alpha": 0.005,
+    "condition": true
+  },
+  "value_type": 2,
+  "unit": "mm/s rms",
+  "initialization": "10 MAD increment screen passed; normal unconfirmed",
+  "detections": 4,
+  "events": 1,
+  "max_chain_points": 4,
+  "labels": "weak alarm, not confirmed failure",
+  "timezone": "unconfirmed"
+}

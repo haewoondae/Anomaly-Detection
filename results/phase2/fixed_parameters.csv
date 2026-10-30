@@ -1,0 +1,7 @@
+channel,config_id,run_id,train_size,dwins,rwins,maxr,alpha,condition,actual_init_span_s
+VEL,fixed,0,1417,15,60,3,0.005,True,84946.0
+VEL,fixed,1,1417,15,60,3,0.005,True,84959.0
+ACC,fixed,0,1440,15,60,3,0.005,True,86335.0
+ACC,fixed,1,1417,15,60,3,0.005,True,84957.0
+ENV3,fixed,0,1417,15,60,3,0.005,True,84964.0
+ENV3,fixed,1,1417,15,60,3,0.005,True,84969.0

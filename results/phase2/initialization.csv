@@ -1,0 +1,13 @@
+channel,run_id,size_hours,size_points,mad_sigma,increment_mad_sigma,suspect_jumps,normal_state,screen,sufficient_length
+VEL,0,12,709,0.003348256154358428,0.004503655995056084,0,unconfirmed,increment deviation >10 MAD sigma,True
+VEL,0,24,1417,0.006341055648028953,0.004403936146572324,0,unconfirmed,increment deviation >10 MAD sigma,True
+VEL,1,12,709,0.0528973063230498,0.050501599788672843,0,unconfirmed,increment deviation >10 MAD sigma,True
+VEL,1,24,1417,0.03230836930274667,0.022634787333012447,0,unconfirmed,increment deviation >10 MAD sigma,True
+ACC,0,12,720,0.0030903018113226364,0.0024067472420633354,0,unconfirmed,increment deviation >10 MAD sigma,True
+ACC,0,24,1440,0.0051858629241585165,0.0022081304892896474,0,unconfirmed,increment deviation >10 MAD sigma,True
+ACC,1,12,709,0.010435838171839714,0.005633754444122005,0,unconfirmed,increment deviation >10 MAD sigma,True
+ACC,1,24,1417,0.021931562188267913,0.0053767528384928666,0,unconfirmed,increment deviation >10 MAD sigma,True
+ENV3,0,12,709,0.00408601181656118,0.0033403691455721543,0,unconfirmed,increment deviation >10 MAD sigma,True
+ENV3,0,24,1417,0.005422174939513165,0.003152177273109524,0,unconfirmed,increment deviation >10 MAD sigma,True
+ENV3,1,12,709,0.011426972275972941,0.006365500956774025,0,unconfirmed,increment deviation >10 MAD sigma,True
+ENV3,1,24,1417,0.019935928040742297,0.006176941797137507,0,unconfirmed,increment deviation >10 MAD sigma,True

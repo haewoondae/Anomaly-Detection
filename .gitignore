@@ -55,3 +55,10 @@ gen_out/
 Data/
 docs/Data/
 **/Data/
+
+# Phase 2 runtime artifacts may contain real observations and source identifiers.
+/results/phase2/
+/scratch/phase2/
+*.phase2.local.json
+# User-provided reference may include a private appendix or real observations.
+/docs/osESD_재현보고서_1부_초안_v2.docx
