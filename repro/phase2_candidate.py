@@ -5,13 +5,14 @@ from pathlib import Path
 
 import pymysql
 from dotenv import dotenv_values
-from phase2_extract import write_json
+from phase2_extract import DEFAULT_ENV_FILE, write_json
 
 
 def main():
     p = argparse.ArgumentParser(description=__doc__)
     p.add_argument("--targets", type=Path, required=True)
-    p.add_argument("--backend-env", type=Path, required=True)
+    p.add_argument("--env-file", "--backend-env", dest="env_file", type=Path,
+                   default=DEFAULT_ENV_FILE, help="DB .env file (default: project root/.env)")
     a = p.parse_args()
     c = json.loads(a.targets.read_text(encoding="utf-8"))
     if c["status"] != "approved":
@@ -22,7 +23,7 @@ def main():
         raise SystemExit("Unknown candidate source")
     trend_table = tables[k["SYS1_ID"]]
     lo, hi = c["from_ts_inclusive"], c["to_ts_exclusive"]
-    env = dotenv_values(a.backend_env)
+    env = dotenv_values(a.env_file)
     out = Path("results/phase2") / c.get("candidate_output_subdir", "")
     audit = []
 

@@ -7,13 +7,14 @@ from pathlib import Path
 
 import pymysql
 from dotenv import dotenv_values
-from phase2_extract import write_json
+from phase2_extract import DEFAULT_ENV_FILE, write_json
 
 
 def main():
     p = argparse.ArgumentParser(description=__doc__)
     p.add_argument("--targets", type=Path, required=True)
-    p.add_argument("--backend-env", type=Path, required=True)
+    p.add_argument("--env-file", "--backend-env", dest="env_file", type=Path,
+                   default=DEFAULT_ENV_FILE, help="DB .env file (default: project root/.env)")
     a = p.parse_args()
     cfg = json.loads(a.targets.read_text(encoding="utf-8"))
     if cfg["status"] != "approved":
@@ -26,7 +27,7 @@ def main():
             "POINT_ID": alarm["ENTITY_LOCAL_ID"], "MEASUREMENT_ID": alarm["NODE_LOCAL_ID"], "AGGR_TIME_CD": "2M"}
     if keys["SYS1_ID"] != "04":
         raise SystemExit("Unsupported candidate source")
-    env = dotenv_values(a.backend_env)
+    env = dotenv_values(a.env_file)
     conn = None
     audit = []
     try:

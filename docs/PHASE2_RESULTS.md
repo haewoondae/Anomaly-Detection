@@ -138,5 +138,7 @@ leave-one-out는 같은 고정 설정의 비교 실행만 수행했고 기본 �
 
 ## 산출물과 한계
 
+DB 접속정보 관리·조회 조건·재실행 명령과 남은 선택 실험은 [DB 추출 안내](PHASE2_DB_EXTRACTION.md)에 정리했다.
+
 `results/phase2/`에 입력 CSV 목록·품질·run·파라미터·검출 시점·사건·격자·시드별 지표·민감도 CSV와 그림 5개를 저장했다. 보고서 10장용 표는 `chapter10_quality.csv`, `chapter10_normal_assumed.csv`, `chapter10_synthetic.csv`, `chapter10_alarm_case.csv`다. 상세 지표와 원본을 포함하는 결과 폴더 전체는 Git 제외 대상이다.
 라벨 없음, 시간대·집계 의미·운전 조건·과거 단위 변경은 미확정이다. 초기화 구간은 detector의 탐지 맹점이다. 합성 이상 결과는 MAD 기준·배치 조건·고정 설정에 의존한다. auto_osESD는 별도 승인 대상이므로 실행하지 않았으며, 실행 전 앞 20%의 의심 이벤트를 확인해야 한다.

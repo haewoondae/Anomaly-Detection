@@ -12,6 +12,8 @@ from pathlib import Path
 import pymysql
 from dotenv import dotenv_values
 
+DEFAULT_ENV_FILE = Path(__file__).resolve().parents[1] / ".env"
+
 
 def write_json(path, value):
     path.parent.mkdir(parents=True, exist_ok=True)
@@ -21,7 +23,8 @@ def write_json(path, value):
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--targets", type=Path, required=True)
-    parser.add_argument("--backend-env", type=Path, required=True)
+    parser.add_argument("--env-file", "--backend-env", dest="env_file", type=Path,
+                        default=DEFAULT_ENV_FILE, help="DB .env file (default: project root/.env)")
     parser.add_argument("--output", type=Path, default=Path("results/phase2"))
     args = parser.parse_args()
     config = json.loads(args.targets.read_text(encoding="utf-8"))
@@ -31,7 +34,7 @@ def main():
     start_dt, end_dt = map(datetime.fromisoformat, (start, end))
     if not 0 < (end_dt - start_dt).total_seconds() <= 31 * 86400:
         raise SystemExit("Expected a positive extraction period of at most 31 days")
-    settings = dotenv_values(args.backend_env)
+    settings = dotenv_values(args.env_file)
     out = args.output
     out.mkdir(parents=True, exist_ok=True)
     audit = []
